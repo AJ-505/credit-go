@@ -21,6 +21,15 @@ next-env.d.ts
 # production
 /build
 
+# ML service local outputs
+/src/services/ml/.venv/
+/src/services/ml/__pycache__/
+/src/services/ml/artifacts/
+/src/services/ml/training-data/*.parquet
+*.joblib
+*.pkl
+*.xgb
+
 # misc
 .DS_Store
 *.pem
