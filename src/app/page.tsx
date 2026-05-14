@@ -1,103 +1,65 @@
-import { headers } from "next/headers";
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import React from "react";
 
-import { LatestPost } from "@/app/_components/post";
-import { auth } from "@/server/better-auth";
-import { getSession } from "@/server/better-auth/server";
-import { api, HydrateClient } from "@/trpc/server";
-
-export default async function Home() {
-  const hello = await api.post.hello({ text: "from tRPC" });
-  const session = await getSession();
-
-  if (session) {
-    void api.post.getLatest.prefetch();
-  }
+export default function Home() {
+  const variations = [
+    // Dark Themes
+    { id: 1, name: "OpenClaw Red", mode: "Dark", desc: "Dark background, deep glowing red radial gradients, centered text, highly dramatic." },
+    { id: 2, name: "T3 Grid", mode: "Dark", desc: "Dark monochrome, grid paper background, sleek floating tech icons." },
+    { id: 3, name: "Rabbit Tech", mode: "Dark", desc: "Top orange banner, dark gray background, technical split UI mimicking a trust dashboard." },
+    { id: 4, name: "DropBox Bold", mode: "Dark", desc: "Massive bold typography, stark black, simple white text, blue CTA." },
+    { id: 5, name: "Aceter Glow", mode: "Dark", desc: "Subtle glow, glassmorphism, incredibly clean lines." },
+    
+    // Light Themes
+    { id: 6, name: "Clean Fintech", mode: "Light", desc: "Neumorphic, lots of white space, soft shadows, rounded corners (Kuda/Monzo vibe)." },
+    { id: 7, name: "Brutalist Editorial", mode: "Light", desc: "Serif fonts, heavy black borders, stark white and bright orange (Stripe/High-end magazine)." },
+    { id: 8, name: "Playful Pop", mode: "Light", desc: "High contrast borders, bright accent colors on cream/white, flat design (Gumroad vibe)." },
+    { id: 9, name: "Enterprise Trust", mode: "Light", desc: "Light gray/blue, very structured, data-heavy look (Standard enterprise SaaS)." },
+    { id: 10, name: "Zen Minimal", mode: "Light", desc: "Pure white, extremely thin lines, very subtle typography (Apple/High-end lifestyle)." },
+  ];
 
   return (
-    <HydrateClient>
-      <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
-        <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
-          <h1 className="text-5xl font-extrabold tracking-tight sm:text-[5rem]">
-            Create <span className="text-[hsl(280,100%,70%)]">T3</span> App
+    <main className="min-h-screen bg-stone-950 p-6 font-sans text-white md:p-12">
+      <div className="mx-auto max-w-6xl">
+        <header className="mb-12 max-w-3xl">
+          <p className="mb-4 text-sm font-bold tracking-[0.24em] text-emerald-400 uppercase">
+            CreditGo Prototype Variants
+          </p>
+          <h1 className="mb-5 text-5xl font-black tracking-[-0.06em] text-white md:text-7xl">
+            10 Distinct Visions.
           </h1>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
-            <Link
-              className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
-              href="https://create.t3.gg/en/usage/first-steps"
-              target="_blank"
-            >
-              <h3 className="text-2xl font-bold">First Steps →</h3>
-              <div className="text-lg">
-                Just the basics - Everything you need to know to set up your
-                database and authentication.
-              </div>
-            </Link>
-            <Link
-              className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 hover:bg-white/20"
-              href="https://create.t3.gg/en/introduction"
-              target="_blank"
-            >
-              <h3 className="text-2xl font-bold">Documentation →</h3>
-              <div className="text-lg">
-                Learn more about Create T3 App, the libraries it uses, and how
-                to deploy it.
-              </div>
-            </Link>
-          </div>
-          <div className="flex flex-col items-center gap-2">
-            <p className="text-2xl text-white">
-              {hello ? hello.greeting : "Loading tRPC query..."}
-            </p>
+          <p className="text-lg leading-8 text-stone-400">
+            5 Dark modes. 5 Light modes. Every variant contains a full flow: Landing Page → Role Selection → Verification Form → XGBoost Trust Dashboard.
+          </p>
+        </header>
 
-            <div className="flex flex-col items-center justify-center gap-4">
-              <p className="text-center text-2xl text-white">
-                {session && <span>Logged in as {session.user?.name}</span>}
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {variations.map((v) => (
+            <Link
+              key={v.id}
+              href={`/${v.id}`}
+              className="group block rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 transition-all hover:-translate-y-1 hover:border-emerald-400/50 hover:bg-white/[0.08]"
+            >
+              <div className="mb-6 flex items-center justify-between">
+                <span className="text-4xl font-black text-white/20 transition-colors group-hover:text-emerald-400/40">
+                  {v.id < 10 ? `0${v.id}` : v.id}
+                </span>
+                <span className={`rounded-full px-3 py-1 text-xs font-bold tracking-[0.16em] uppercase ${v.mode === 'Dark' ? 'bg-stone-800 text-stone-300' : 'bg-white text-black'}`}>
+                  {v.mode}
+                </span>
+              </div>
+              <h2 className="mb-2 text-2xl font-bold text-white">{v.name}</h2>
+              <p className="text-sm leading-6 text-stone-400 mb-6 h-12">
+                {v.desc}
               </p>
-              {!session ? (
-                <form>
-                  <button
-                    className="rounded-full bg-white/10 px-10 py-3 font-semibold no-underline transition hover:bg-white/20"
-                    formAction={async () => {
-                      "use server";
-                      const res = await auth.api.signInSocial({
-                        body: {
-                          provider: "github",
-                          callbackURL: "/",
-                        },
-                      });
-                      if (!res.url) {
-                        throw new Error("No URL returned from signInSocial");
-                      }
-                      redirect(res.url);
-                    }}
-                  >
-                    Sign in with Github
-                  </button>
-                </form>
-              ) : (
-                <form>
-                  <button
-                    className="rounded-full bg-white/10 px-10 py-3 font-semibold no-underline transition hover:bg-white/20"
-                    formAction={async () => {
-                      "use server";
-                      await auth.api.signOut({
-                        headers: await headers(),
-                      });
-                      redirect("/");
-                    }}
-                  >
-                    Sign out
-                  </button>
-                </form>
-              )}
-            </div>
-          </div>
 
-          {session?.user && <LatestPost />}
+              <div className="flex items-center gap-2 text-xs font-bold text-emerald-400">
+                View Full Flow →
+              </div>
+            </Link>
+          ))}
         </div>
-      </main>
-    </HydrateClient>
+      </div>
+    </main>
   );
 }
