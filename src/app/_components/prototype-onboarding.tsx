@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { Button } from "@/components/ui/button";
+
 type PrototypeId = "1" | "2" | "3" | "4" | "5";
 type FlowType = "freelancer" | "corporate" | "government";
 
@@ -335,12 +337,14 @@ function MidnightFlow({
             <p className="mt-6 text-sm font-semibold text-[#5967ff]">
               Evidence needed: {profile.documents.join(" / ")}
             </p>
-            <button
+            <Button
+              size="unstyled"
+              variant="unstyled"
               type="submit"
               className="mt-6 w-full rounded-full bg-[#151529] px-6 py-4 text-base font-black text-white transition hover:bg-black"
             >
               Continue
-            </button>
+            </Button>
           </form>
         </section>
       </div>
@@ -453,12 +457,14 @@ function MinimalFlow({
                 />
               </label>
             ))}
-            <button
+            <Button
+              size="unstyled"
+              variant="unstyled"
               type="submit"
               className="w-full rounded-xl bg-stone-900 px-6 py-4 text-base font-semibold text-white transition hover:bg-stone-800"
             >
               Continue
-            </button>
+            </Button>
           </form>
         </div>
       </div>
@@ -568,12 +574,14 @@ function CharcoalFlow({
             <p className="text-sm text-white/40">
               {profile.documents.join(" / ")}
             </p>
-            <button
+            <Button
+              size="unstyled"
+              variant="unstyled"
               type="submit"
               className="w-full rounded-xl bg-white px-6 py-4 text-base font-semibold text-[#121314] transition hover:bg-white/90"
             >
               Continue
-            </button>
+            </Button>
           </form>
         </div>
       </div>
@@ -681,12 +689,14 @@ function WarmFlow({
                 />
               </label>
             ))}
-            <button
+            <Button
+              size="unstyled"
+              variant="unstyled"
               type="submit"
               className="w-full rounded-xl bg-[#2c241b] px-6 py-4 text-base font-semibold text-white transition hover:bg-[#4a3d2f]"
             >
               Continue
-            </button>
+            </Button>
           </form>
         </div>
       </div>
@@ -796,12 +806,14 @@ function AiryFlow({
               ))}
             </div>
           </details>
-          <button
+          <Button
+            size="unstyled"
+            variant="unstyled"
             type="submit"
             className="w-full rounded-xl bg-[#1a1a18] px-6 py-4 text-base font-semibold text-white transition hover:bg-[#333]"
           >
             Continue
-          </button>
+          </Button>
         </form>
       </div>
     </main>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import { api } from "@/trpc/react";
 
 export function LatestPost() {
@@ -37,13 +38,15 @@ export function LatestPost() {
           onChange={(e) => setName(e.target.value)}
           className="w-full rounded-full bg-white/10 px-4 py-2 text-white"
         />
-        <button
+        <Button
+          size="unstyled"
+          variant="unstyled"
           type="submit"
           className="rounded-full bg-white/10 px-10 py-3 font-semibold transition hover:bg-white/20"
           disabled={createPost.isPending}
         >
           {createPost.isPending ? "Submitting..." : "Submit"}
-        </button>
+        </Button>
       </form>
     </div>
   );
