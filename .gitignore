@@ -53,3 +53,11 @@ yarn-error.log*
 
 # idea files
 .idea
+
+# python
+__pycache__/
+*.pyc
+*.pyo
+
+# training data
+training-data
