@@ -42,7 +42,7 @@ export default function Landing() {
                 </Button>
               </div>
               <Link
-                href="/onboarding"
+                href={view === "lender" ? "/onboarding/lender" : "/onboarding"}
                 className="hidden text-sm font-bold text-stone-600 transition-colors hover:text-stone-900 md:block"
               >
                 Log In
@@ -52,7 +52,13 @@ export default function Landing() {
                 size="unstyled"
                 className={`hidden rounded-full px-5 py-2.5 text-sm font-bold text-white shadow-md transition-all md:block ${view === "borrower" ? "bg-emerald-600 hover:bg-emerald-700" : "bg-blue-800 hover:bg-blue-900"}`}
               >
-                <Link href="/onboarding">Get Started</Link>
+                <Link
+                  href={
+                    view === "lender" ? "/onboarding/lender" : "/onboarding"
+                  }
+                >
+                  Get Started
+                </Link>
               </Button>
             </div>
           </div>
@@ -633,10 +639,13 @@ export default function Landing() {
                   </p>
                   <div className="flex flex-col justify-center gap-4 sm:flex-row">
                     <Button
+                      asChild
                       size="unstyled"
                       className="rounded-full bg-blue-800 px-8 py-4 text-lg font-bold text-white shadow-[0_8px_30px_rgba(30,64,175,0.4)] transition-transform hover:-translate-y-1"
                     >
-                      Create Partner Account
+                      <Link href="/onboarding/lender">
+                        Create Partner Account
+                      </Link>
                     </Button>
                     <Button
                       size="unstyled"

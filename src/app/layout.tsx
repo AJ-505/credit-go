@@ -12,7 +12,8 @@ const dmSans = DM_Sans({
 
 export const metadata: Metadata = {
   title: "CreditGo | Smarter Credit Access",
-  description: "Credit eligibility and asset financing based on true cash flow.",
+  description:
+    "Credit eligibility and asset financing based on true cash flow.",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
@@ -21,7 +22,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={dmSans.variable}>
-      <body className="font-sans antialiased text-foreground bg-background transition-colors duration-300">
+      <body className="text-foreground bg-background font-sans antialiased transition-colors duration-300">
         <TRPCReactProvider>{children}</TRPCReactProvider>
       </body>
     </html>
