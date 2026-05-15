@@ -116,4 +116,5 @@ src/
 
 ## Further reading
 
-See [REPORT.md](./REPORT.md) for the full research report — market analysis, ML algorithm breakdowns, Squad API integration plans, and the hackathon build strategy.
+- [PRD.md](./PRD.md) — Full Product Requirements Document: user flows, API integrations, Behavioral Trust Score mechanics, and monetisation model.
+- [REPORT.md](./REPORT.md) — Research report: market analysis, ML algorithm breakdowns, Squad API integration plans, and the hackathon build strategy.
