@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 
-from features import load_model, score_applicant
+from ml_service.model.inference import load_model, score_applicant
 
 
 def main() -> None:

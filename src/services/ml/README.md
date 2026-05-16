@@ -14,6 +14,14 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+## Structure
+
+- `ml_service/model/`: feature contracts, feature builders, model loading, and inference scoring.
+- `ml_service/training/`: training data loading and model training entrypoints.
+- `ml_service/api/`: FastAPI app and request/response schemas for serving the trained model.
+- `artifacts/`: generated model outputs, ignored by git.
+- `training-data/`: local training datasets, ignored by git.
+
 ## Train
 
 The first run samples each Parquet file, joins compatible borrower-level records,
@@ -21,6 +29,12 @@ and trains an XGBoost classifier. The model is saved to `artifacts/`.
 
 ```bash
 python train_model.py --sample-rows 200000
+```
+
+Equivalent module form:
+
+```bash
+python -m ml_service.training.train --sample-rows 200000
 ```
 
 ## Score From CLI
@@ -44,6 +58,12 @@ Start the service only when you need it:
 
 ```bash
 uvicorn main:app --reload --port 8000
+```
+
+Equivalent module form:
+
+```bash
+uvicorn ml_service.api.app:app --reload --port 8000
 ```
 
 Then test it:
