@@ -103,7 +103,7 @@ export default function MarketplaceDetailPage({
   const [submitted, setSubmitted] = useState(false);
   const option = useMemo(() => {
     const index = Math.max(0, (Number(id) || 1) - 1) % offers.length;
-    return offers[index];
+    return offers[index] ?? offers[0];
   }, [id]);
 
   return (
