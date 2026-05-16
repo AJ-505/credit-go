@@ -11,7 +11,20 @@ import {
 import Link from "next/link";
 import { use, useMemo, useState } from "react";
 
-const offers = [
+type Offer = {
+  lender: string;
+  product: string;
+  category: string;
+  range: string;
+  currency: string;
+  minTier: string;
+  rate: string;
+  tenor: string;
+  disbursement: string;
+  documents: string[];
+};
+
+const offers: [Offer, ...Offer[]] = [
   {
     lender: "Spleet",
     product: "Rent Now Pay Later",
