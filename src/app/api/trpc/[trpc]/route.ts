@@ -4,6 +4,7 @@ import { type NextRequest } from "next/server";
 import { env } from "@/env";
 import { appRouter } from "@/server/api/root";
 import { createTRPCContext } from "@/server/api/trpc";
+import { ProviderApiError } from "@/server/integrations/http";
 
 /**
  * This wraps the `createTRPCContext` helper and provides the required context for the tRPC API when
@@ -24,11 +25,32 @@ const handler = (req: NextRequest) =>
     onError:
       env.NODE_ENV === "development"
         ? ({ path, error }) => {
+            const cause = error.cause;
             console.error(
               `❌ tRPC failed on ${path ?? "<no-path>"}: ${error.message}`,
+              cause instanceof ProviderApiError
+                ? {
+                    provider: cause.service,
+                    method: cause.method,
+                    url: sanitizeUrl(cause.url),
+                    status: cause.status,
+                    code: cause.code,
+                    body: cause.body,
+                  }
+                : { cause },
             );
           }
         : undefined,
   });
 
 export { handler as GET, handler as POST };
+
+function sanitizeUrl(url: string | undefined) {
+  if (!url) return undefined;
+  try {
+    const parsed = new URL(url);
+    return `${parsed.origin}${parsed.pathname}`;
+  } catch {
+    return url;
+  }
+}
