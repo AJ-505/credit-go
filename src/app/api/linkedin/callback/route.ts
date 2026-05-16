@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 
   const session = await auth.api.getSession({ headers: request.headers });
   if (!session?.user) {
-    return NextResponse.redirect(new URL("/onboarding/register", appBaseUrl()));
+    return NextResponse.redirect(new URL("/onboarding/register", request.nextUrl.origin));
   }
 
   const redirectUri = `${request.nextUrl.origin}/api/linkedin/callback`;
@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
     .set({ linkedinConnected: true, updatedAt: new Date() })
     .where(eq(onboardingDraft.userId, session.user.id));
 
-  return NextResponse.redirect(new URL(next, appBaseUrl()));
+  return NextResponse.redirect(new URL(next, request.nextUrl.origin));
 }
 
 function parseState(state: string | null) {
