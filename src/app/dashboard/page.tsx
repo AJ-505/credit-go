@@ -70,24 +70,30 @@ export default function DashboardPage() {
 
       {/* Quick Action Cards */}
       <div className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-xl border bg-card p-6 shadow">
-          <Wallet className="h-6 w-6 mb-4 text-primary" />
-          <h4 className="font-semibold">Get a Loan</h4>
-          <p className="text-sm text-muted-foreground mt-2 mb-4">Browse what you qualify for based on your score.</p>
-          <Link href="/dashboard/marketplace" className="text-sm text-primary font-medium">Browse →</Link>
-        </div>
-        <div className="rounded-xl border bg-card p-6 shadow">
-          <Target className="h-6 w-6 mb-4 text-primary" />
-          <h4 className="font-semibold">Save Faster</h4>
-          <p className="text-sm text-muted-foreground mt-2 mb-4">Increase your daily auto-sweep to build your limit.</p>
-          <Link href="/dashboard/vault" className="text-sm text-primary font-medium">Adjust →</Link>
-        </div>
-        <div className="rounded-xl border bg-card p-6 shadow">
-          <TrendingUp className="h-6 w-6 mb-4 text-primary" />
-          <h4 className="font-semibold">Improve Score</h4>
-          <p className="text-sm text-muted-foreground mt-2 mb-4">Take Credit School lessons for +5 points.</p>
-          <Link href="#" className="text-sm text-primary font-medium">Start →</Link>
-        </div>
+        <Link href="/dashboard/marketplace" className="group rounded-xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md hover:border-emerald-200 block">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 mb-4 group-hover:bg-emerald-200 transition-colors">
+            <Wallet className="h-6 w-6 text-emerald-600" />
+          </div>
+          <h4 className="font-bold text-stone-900 group-hover:text-emerald-700 transition-colors">Get a Loan</h4>
+          <p className="text-sm text-stone-600 mt-2 mb-4 leading-relaxed">Browse what you qualify for based on your score.</p>
+          <span className="text-sm text-emerald-600 font-bold flex items-center gap-1 group-hover:gap-2 transition-all">Browse <ArrowRight className="h-4 w-4" /></span>
+        </Link>
+        <Link href="/dashboard/vault" className="group rounded-xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md hover:border-emerald-200 block">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 mb-4 group-hover:bg-emerald-200 transition-colors">
+            <Target className="h-6 w-6 text-emerald-600" />
+          </div>
+          <h4 className="font-bold text-stone-900 group-hover:text-emerald-700 transition-colors">Save Faster</h4>
+          <p className="text-sm text-stone-600 mt-2 mb-4 leading-relaxed">Increase your daily auto-sweep to build your limit.</p>
+          <span className="text-sm text-emerald-600 font-bold flex items-center gap-1 group-hover:gap-2 transition-all">Adjust <ArrowRight className="h-4 w-4" /></span>
+        </Link>
+        <Link href="/dashboard/profile" className="group rounded-xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md hover:border-emerald-200 block">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 mb-4 group-hover:bg-emerald-200 transition-colors">
+            <TrendingUp className="h-6 w-6 text-emerald-600" />
+          </div>
+          <h4 className="font-bold text-stone-900 group-hover:text-emerald-700 transition-colors">Improve Score</h4>
+          <p className="text-sm text-stone-600 mt-2 mb-4 leading-relaxed">Take Credit School lessons for +5 points.</p>
+          <span className="text-sm text-emerald-600 font-bold flex items-center gap-1 group-hover:gap-2 transition-all">Start <ArrowRight className="h-4 w-4" /></span>
+        </Link>
       </div>
     </div>
   );
