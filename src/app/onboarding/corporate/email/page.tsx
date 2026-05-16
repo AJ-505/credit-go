@@ -1,5 +1,5 @@
-import { BorrowerOnboarding } from "../../onboarding-client";
+import { redirect } from "next/navigation";
 
 export default function Page() {
-  return <BorrowerOnboarding step="corporate-email" />;
+  redirect("/onboarding/corporate/payslip");
 }

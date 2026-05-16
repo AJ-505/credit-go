@@ -8,14 +8,8 @@ import {
   publicProcedure,
 } from "@/server/api/trpc";
 import { useDevMock } from "@/server/api/dev-mock";
-import {
-  lender,
-  onboardingDraft,
-  user,
-  workEmailOtp,
-} from "@/server/db/schema";
+import { lender, onboardingDraft, user } from "@/server/db/schema";
 import { verifyCac } from "@/server/integrations/lumiid";
-import { sendOtpEmail } from "@/server/integrations/email";
 import { providerErrorToTrpc } from "@/server/integrations/http";
 import {
   createCr3dentialsSession,
@@ -30,14 +24,11 @@ import {
 import { verifyNin } from "@/server/integrations/mono";
 import { extractPayslip } from "@/server/onboarding/payslip";
 import {
-  extractDomain,
-  generateOtp,
   hashSecret,
   makeApiKey,
   makeId,
   mapResidenceState,
   ninToSquadDob,
-  PERSONAL_EMAIL_DOMAINS,
   squadGender,
   stringSimilarity,
 } from "@/server/onboarding/utils";
@@ -164,7 +155,7 @@ export const generalRouter = createTRPCRouter({
         input.persona === "freelancer"
           ? "freelancer_bank"
           : input.persona === "corporate_worker"
-            ? "corporate_email"
+            ? "corporate_payslip"
             : "government_details";
       await ctx.db
         .update(user)
@@ -206,89 +197,6 @@ export const generalRouter = createTRPCRouter({
         })
         .where(eq(user.id, ctx.session.user.id));
       return { ok: true };
-    }),
-
-  sendWorkEmailOtp: protectedProcedure
-    .input(z.object({ email: z.string().email() }))
-    .mutation(async ({ ctx, input }) => {
-      const domain = extractDomain(input.email);
-      if (PERSONAL_EMAIL_DOMAINS.has(domain)) {
-        throw new Error(
-          "Please use your company email address, not a personal one",
-        );
-      }
-
-      const draft = await getOrCreateUserDraft(ctx.db, ctx.session.user.id);
-      const code = generateOtp();
-      const emailResult = await sendOtpEmail({ to: input.email, code });
-      await ctx.db.insert(workEmailOtp).values({
-        id: makeId("otp"),
-        userId: ctx.session.user.id,
-        draftId: draft.id,
-        email: input.email,
-        codeHash: hashSecret(code),
-        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-      });
-
-      return {
-        delivered: emailResult.delivered,
-        devCode: emailResult.devCode,
-      };
-    }),
-
-  verifyWorkEmailOtp: protectedProcedure
-    .input(
-      z.object({ email: z.string().email(), otp: z.string().regex(/^\d{6}$/) }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const record = await ctx.db.query.workEmailOtp.findFirst({
-        where: eq(workEmailOtp.email, input.email),
-        orderBy: (table, { desc }) => [desc(table.createdAt)],
-      });
-      if (!record || record.expiresAt < new Date() || record.consumedAt) {
-        throw new Error("OTP expired. Request a new one.");
-      }
-      if (record.attempts >= 3) {
-        throw new Error("Too many failed attempts. Please start over.");
-      }
-      if (record.codeHash !== hashSecret(input.otp)) {
-        await ctx.db
-          .update(workEmailOtp)
-          .set({ attempts: record.attempts + 1 })
-          .where(eq(workEmailOtp.id, record.id));
-        throw new Error(
-          `Incorrect OTP. ${2 - record.attempts} attempt(s) remaining.`,
-        );
-      }
-
-      const domain = extractDomain(input.email);
-      await ctx.db
-        .update(workEmailOtp)
-        .set({ consumedAt: new Date() })
-        .where(eq(workEmailOtp.id, record.id));
-      await ctx.db
-        .update(user)
-        .set({
-          employmentVerified: true,
-          employerDomain: domain,
-          onboardingStep: "corporate_payslip",
-          updatedAt: new Date(),
-        })
-        .where(eq(user.id, ctx.session.user.id));
-
-      const draft = await getOrCreateUserDraft(ctx.db, ctx.session.user.id);
-      await ctx.db
-        .update(onboardingDraft)
-        .set({
-          employmentVerified: true,
-          employerDomain: domain,
-          persona: "corporate_worker",
-          step: "corporate_payslip",
-          updatedAt: new Date(),
-        })
-        .where(eq(onboardingDraft.id, draft.id));
-
-      return { verified: true, domain };
     }),
 
   analyzePayslip: protectedProcedure
@@ -366,6 +274,14 @@ export const generalRouter = createTRPCRouter({
       z.object({
         code: z.string().min(3),
         salaryAmount: z.number().optional(),
+        nextStep: z
+          .enum([
+            "freelancer_income",
+            "corporate_linkedin",
+            "government_reveal",
+            "reveal",
+          ])
+          .default("reveal"),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -392,7 +308,7 @@ export const generalRouter = createTRPCRouter({
             monthlyDebtNgn: devMock.averageMonthlyOutflow,
             bankStatementMonths: devMock.monthCount,
             employmentVerified: current?.employmentVerified || true,
-            onboardingStep: "reveal",
+            onboardingStep: input.nextStep,
             updatedAt: new Date(),
           })
           .where(eq(user.id, ctx.session.user.id));
@@ -404,7 +320,7 @@ export const generalRouter = createTRPCRouter({
             monthlyDebtNgn: devMock.averageMonthlyOutflow,
             bankStatementMonths: devMock.monthCount,
             salaryConfirmed: true,
-            step: "reveal",
+            step: input.nextStep,
             updatedAt: new Date(),
           })
           .where(eq(onboardingDraft.id, draft.id));
@@ -446,7 +362,7 @@ export const generalRouter = createTRPCRouter({
             monthlyDebtNgn: analysis.averageMonthlyOutflow,
             bankStatementMonths: analysis.monthCount,
             employmentVerified: current?.employmentVerified || salaryConfirmed,
-            onboardingStep: "reveal",
+            onboardingStep: input.nextStep,
             updatedAt: new Date(),
           })
           .where(eq(user.id, ctx.session.user.id));
@@ -458,7 +374,7 @@ export const generalRouter = createTRPCRouter({
             monthlyDebtNgn: analysis.averageMonthlyOutflow,
             bankStatementMonths: analysis.monthCount,
             salaryConfirmed,
-            step: "reveal",
+            step: input.nextStep,
             raw: {
               monoBankExchange: exchange.raw,
               monoIncome: incomeResponse,

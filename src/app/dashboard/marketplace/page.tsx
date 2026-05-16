@@ -1,5 +1,6 @@
 "use client";
 
+import { Check, ChevronDown, Search, X } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
@@ -1037,46 +1038,151 @@ const tierRank = {
 export default function MarketplacePage() {
   const userTier = "Gold";
   const safeLimit = 3200000;
-  const [activeCategory, setActiveCategory] =
-    useState<(typeof categories)[number]>("All");
-  const filteredOptions = useMemo(
+  const [selectedCategories, setSelectedCategories] = useState<
+    (typeof categories)[number][]
+  >(["All"]);
+  const [categorySearch, setCategorySearch] = useState("");
+  const [categoryOpen, setCategoryOpen] = useState(false);
+  const visibleCategories = useMemo(
     () =>
-      activeCategory === "All"
-        ? financingOptions
-        : financingOptions.filter(
-            (option) => option.category === activeCategory,
-          ),
-    [activeCategory],
+      categories.filter((category) =>
+        category.toLowerCase().includes(categorySearch.toLowerCase()),
+      ),
+    [categorySearch],
   );
+  const filteredOptions = useMemo(() => {
+    if (selectedCategories.length === 0 || selectedCategories.includes("All")) {
+      return financingOptions;
+    }
+
+    return financingOptions.filter((option) =>
+      selectedCategories.includes(option.category),
+    );
+  }, [selectedCategories]);
+  const hiddenSelectedCount = Math.max(selectedCategories.length - 3, 0);
+
+  const toggleCategory = (category: (typeof categories)[number]) => {
+    if (category === "All") {
+      setSelectedCategories(["All"]);
+      return;
+    }
+
+    setSelectedCategories((current) => {
+      const withoutAll = current.filter((item) => item !== "All");
+      const next = withoutAll.includes(category)
+        ? withoutAll.filter((item) => item !== category)
+        : [...withoutAll, category];
+
+      return next.length ? next : ["All"];
+    });
+  };
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Marketplace</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-3xl font-black tracking-tight text-stone-950">
+          Marketplace
+        </h1>
+        <p className="mt-2 text-stone-500">
           Browse financing options based on your tier and limit.
         </p>
       </div>
 
-      <div className="flex gap-3 overflow-x-auto border-b pb-2">
-        {categories.map((category) => (
-          <button
-            key={category}
-            type="button"
-            aria-pressed={activeCategory === category}
-            onClick={() => setActiveCategory(category)}
-            className={`rounded-md px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
-              activeCategory === category
-                ? "bg-primary text-primary-foreground"
-                : "hover:text-primary"
-            }`}
-          >
-            {category}
-          </button>
-        ))}
+      <div className="relative max-w-2xl">
+        <div className="mb-3 text-xs font-black tracking-widest text-stone-500 uppercase">
+          Financing categories
+        </div>
+        <button
+          type="button"
+          onClick={() => setCategoryOpen((value) => !value)}
+          className="flex min-h-20 w-full items-center justify-between gap-4 rounded-xl border border-emerald-100 bg-white px-4 py-3 text-left shadow-sm ring-1 ring-transparent transition focus:ring-2 focus:ring-emerald-100 focus:outline-none"
+        >
+          <div className="flex flex-1 flex-wrap gap-2">
+            {selectedCategories.slice(0, 3).map((category) => (
+              <span
+                key={category}
+                className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-bold text-emerald-800"
+              >
+                {category}
+                {category !== "All" ? (
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      toggleCategory(category);
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        toggleCategory(category);
+                      }
+                    }}
+                    className="rounded-full text-emerald-600 hover:text-emerald-900"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </span>
+                ) : null}
+              </span>
+            ))}
+            {hiddenSelectedCount ? (
+              <span className="inline-flex items-center rounded-full bg-stone-100 px-3 py-1 text-sm font-bold text-stone-600">
+                +{hiddenSelectedCount}
+              </span>
+            ) : null}
+          </div>
+          <ChevronDown className="h-5 w-5 text-emerald-700" />
+        </button>
+
+        {categoryOpen ? (
+          <div className="absolute z-20 mt-3 w-full overflow-hidden rounded-xl border border-emerald-100 bg-white shadow-xl">
+            <div className="flex items-center gap-3 border-b border-stone-100 px-4 py-3">
+              <Search className="h-5 w-5 text-stone-400" />
+              <input
+                value={categorySearch}
+                onChange={(event) => setCategorySearch(event.target.value)}
+                placeholder="Search categories..."
+                className="h-10 flex-1 bg-transparent text-base outline-none placeholder:text-stone-400"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedCategories(["All"]);
+                  setCategorySearch("");
+                }}
+                className="text-sm font-bold text-emerald-700 hover:text-emerald-900"
+              >
+                Clear
+              </button>
+            </div>
+            <div className="max-h-80 overflow-y-auto p-2">
+              {visibleCategories.map((category) => {
+                const selected = selectedCategories.includes(category);
+                return (
+                  <button
+                    key={category}
+                    type="button"
+                    onClick={() => toggleCategory(category)}
+                    className={`flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-base font-semibold transition ${
+                      selected
+                        ? "bg-emerald-50 text-emerald-900"
+                        : "text-stone-800 hover:bg-stone-50"
+                    }`}
+                  >
+                    <span className="flex h-5 w-5 items-center justify-center">
+                      {selected ? <Check className="h-4 w-4" /> : null}
+                    </span>
+                    {category}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
       </div>
 
-      <p className="text-muted-foreground text-sm">
+      <p className="text-sm font-medium text-stone-500">
         Showing {filteredOptions.length} of {financingOptions.length} options.
       </p>
 
@@ -1091,39 +1197,39 @@ export default function MarketplacePage() {
           return (
             <div
               key={option.id}
-              className="bg-card text-card-foreground flex min-h-64 flex-col rounded-lg border p-6 shadow-sm"
+              className="flex min-h-64 flex-col rounded-xl border border-emerald-100 bg-white p-6 shadow-sm transition hover:border-emerald-200 hover:shadow-md"
             >
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-muted-foreground text-xs font-semibold uppercase">
+                  <p className="text-xs font-black tracking-widest text-emerald-700 uppercase">
                     {option.category}
                   </p>
-                  <h3 className="mt-2 text-lg leading-tight font-semibold">
+                  <h3 className="mt-2 text-lg leading-tight font-black text-stone-950">
                     {option.lender}
                   </h3>
                 </div>
-                <span className="text-muted-foreground rounded-full border px-2.5 py-0.5 text-xs font-semibold">
+                <span className="rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-800">
                   #{option.id}
                 </span>
               </div>
 
-              <p className="text-muted-foreground mt-3 text-sm">
-                {option.product}
-              </p>
-              <div className="mt-4 text-2xl font-bold">{option.range}</div>
+              <p className="mt-3 text-sm text-stone-500">{option.product}</p>
+              <div className="mt-4 text-2xl font-black text-stone-950">
+                {option.range}
+              </div>
 
               <div className="mt-4 flex flex-wrap gap-2">
                 {qualifies ? (
-                  <span className="inline-flex items-center rounded-full border border-transparent bg-green-100 px-2.5 py-0.5 text-xs font-semibold text-green-800">
+                  <span className="inline-flex items-center rounded-full border border-transparent bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-800">
                     You qualify
                   </span>
                 ) : (
-                  <span className="inline-flex items-center rounded-full border border-transparent bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-800">
+                  <span className="inline-flex items-center rounded-full border border-transparent bg-stone-100 px-2.5 py-0.5 text-xs font-bold text-stone-700">
                     Need {option.minTier} tier
                   </span>
                 )}
                 {!withinLimit && (
-                  <span className="inline-flex items-center rounded-full border border-transparent bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-800">
+                  <span className="inline-flex items-center rounded-full border border-transparent bg-red-100 px-2.5 py-0.5 text-xs font-bold text-red-800">
                     Above limit
                   </span>
                 )}
@@ -1132,7 +1238,7 @@ export default function MarketplacePage() {
               <div className="mt-auto pt-6">
                 <Link
                   href={`/dashboard/marketplace/${option.id}`}
-                  className="bg-primary text-primary-foreground ring-offset-background hover:bg-primary/90 focus-visible:ring-ring inline-flex h-10 w-full items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50"
+                  className="inline-flex h-11 w-full items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-200 focus-visible:outline-none"
                 >
                   View Details
                 </Link>
