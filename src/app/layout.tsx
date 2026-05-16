@@ -3,6 +3,8 @@ import "@/styles/globals.css";
 import { type Metadata } from "next";
 import { DM_Sans } from "next/font/google";
 
+import { Toaster } from "sonner";
+
 import { TRPCReactProvider } from "@/trpc/react";
 
 const dmSans = DM_Sans({
@@ -23,7 +25,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={dmSans.variable}>
       <body className="text-foreground bg-background font-sans antialiased transition-colors duration-300">
-        <TRPCReactProvider>{children}</TRPCReactProvider>
+        <TRPCReactProvider>
+          {children}
+          <Toaster richColors closeButton />
+        </TRPCReactProvider>
       </body>
     </html>
   );

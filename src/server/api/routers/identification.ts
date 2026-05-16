@@ -7,10 +7,10 @@ import {
   fetchTelcoIdentity,
   initiateTelcoLogin,
   type TelcoProvider,
+  verifyNin,
   verifyTelcoOtp,
 } from "@/server/integrations/mono";
 import { providerErrorToTrpc } from "@/server/integrations/http";
-import { verifyNin } from "@/server/integrations/lumiid";
 import { onboardingDraft } from "@/server/db/schema";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import {
@@ -55,7 +55,7 @@ export const identificationRouter = createTRPCRouter({
           stateRiskBucket,
           identityVerified: true,
           step: "phone",
-          raw: { lumiidNin: data },
+          raw: { monoNin: data.raw },
           updatedAt: new Date(),
         };
 

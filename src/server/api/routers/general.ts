@@ -14,18 +14,20 @@ import {
   user,
   workEmailOtp,
 } from "@/server/db/schema";
-import { verifyCac, verifyNin } from "@/server/integrations/lumiid";
+import { verifyCac } from "@/server/integrations/lumiid";
 import { sendOtpEmail } from "@/server/integrations/email";
 import { providerErrorToTrpc } from "@/server/integrations/http";
 import {
   createCr3dentialsSession,
   listCr3dentialsPlatforms,
 } from "@/server/integrations/cr3dentials";
+import { createVirtualAccount } from "@/server/integrations/squad";
 import {
   exchangeConnectCode,
   fetchIncome,
   fetchTransactions,
 } from "@/server/integrations/mono";
+import { verifyNin } from "@/server/integrations/mono";
 import { extractPayslip } from "@/server/onboarding/payslip";
 import {
   extractDomain,
@@ -34,7 +36,9 @@ import {
   makeApiKey,
   makeId,
   mapResidenceState,
+  ninToSquadDob,
   PERSONAL_EMAIL_DOMAINS,
+  squadGender,
   stringSimilarity,
 } from "@/server/onboarding/utils";
 
@@ -85,6 +89,31 @@ export const generalRouter = createTRPCRouter({
       });
       if (!draft) throw new Error("Onboarding draft not found");
 
+      let squadVirtualAccount = draft.squadVirtualAccount;
+      let squadCustomerIdentifier = draft.squadCustomerIdentifier;
+      let squadVaultRaw: Record<string, unknown> | undefined;
+
+      if (draft.bvn && draft.email && !squadVirtualAccount) {
+        const customerIdentifier = makeId("cg");
+        const response = await createVirtualAccount({
+          firstName: draft.firstName ?? "",
+          lastName: draft.lastName ?? "",
+          middleName: draft.middleName,
+          mobileNum: draft.phone ?? "",
+          dob: ninToSquadDob(draft.birthdate),
+          gender: squadGender(draft.gender),
+          address: [draft.residenceAddress, draft.residenceTown]
+            .filter(Boolean)
+            .join(", "),
+          email: draft.email,
+          bvn: draft.bvn,
+          customerIdentifier,
+        });
+        squadVirtualAccount = response.virtualAccountNumber;
+        squadCustomerIdentifier = response.customerIdentifier;
+        squadVaultRaw = response.raw;
+      }
+
       await ctx.db
         .update(user)
         .set({
@@ -103,8 +132,8 @@ export const generalRouter = createTRPCRouter({
           stateRiskBucket: draft.stateRiskBucket ?? 0,
           lumiidPhoto: draft.lumiidPhoto,
           monoTelcoAccountId: draft.monoTelcoAccountId,
-          squadVirtualAccount: draft.squadVirtualAccount,
-          squadCustomerIdentifier: draft.squadCustomerIdentifier,
+          squadVirtualAccount,
+          squadCustomerIdentifier,
           onboardingStep: "role_selection",
           identityFlags: draft.identityFlags ?? [],
           updatedAt: new Date(),
@@ -115,7 +144,12 @@ export const generalRouter = createTRPCRouter({
         .update(onboardingDraft)
         .set({
           userId: ctx.session.user.id,
+          squadVirtualAccount,
+          squadCustomerIdentifier,
           step: "role",
+          raw: squadVaultRaw
+            ? { ...(draft.raw ?? {}), squadVault: squadVaultRaw }
+            : draft.raw,
           updatedAt: new Date(),
         })
         .where(eq(onboardingDraft.id, input.draftId));
@@ -584,7 +618,7 @@ export const generalRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const devMock = useDevMock(env.LUMIID_API_KEY, () => ({
+      const devMock = useDevMock(env.MONO_SECRET_KEY, () => ({
         firstname: "Test",
         lastname: "Director",
       }));

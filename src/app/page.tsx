@@ -42,7 +42,7 @@ export default function Landing() {
                 </Button>
               </div>
               <Link
-                href={view === "lender" ? "/onboarding/lender" : "/onboarding"}
+                href="/login"
                 className="hidden text-sm font-bold text-stone-600 transition-colors hover:text-stone-900 md:block"
               >
                 Log In

@@ -1,7 +1,7 @@
 import { env } from "@/env";
 import { requireEnv } from "@/server/onboarding/utils";
 
-import { apiFetch } from "./http";
+import { apiFetch, ProviderApiError } from "./http";
 
 type SquadObject = Record<string, unknown>;
 
@@ -23,6 +23,19 @@ function pick(body: SquadObject, key: string) {
   return undefined;
 }
 
+function requireSquadField(
+  value: string | undefined,
+  field: string,
+  service: string,
+) {
+  if (value) return value;
+  throw new ProviderApiError({
+    status: 502,
+    message: `${service} did not return ${field}`,
+    service,
+  });
+}
+
 export async function createVirtualAccount(input: {
   firstName: string;
   lastName: string;
@@ -35,6 +48,19 @@ export async function createVirtualAccount(input: {
   bvn: string;
   customerIdentifier: string;
 }) {
+  if (env.PROVIDER_MODE === "fake") {
+    return {
+      virtualAccountNumber: "1234567890",
+      bank: "GTBank",
+      customerIdentifier: input.customerIdentifier,
+      raw: {
+        status: "successful",
+        message: "Fake Squad virtual account",
+        customer_identifier: input.customerIdentifier,
+      },
+    };
+  }
+
   const response = await apiFetch<SquadObject>(
     `${env.SQUAD_BASE_URL}/virtual-account`,
     {
@@ -61,10 +87,12 @@ export async function createVirtualAccount(input: {
   );
 
   return {
-    virtualAccountNumber:
+    virtualAccountNumber: requireSquadField(
       pick(response, "virtual_account_number") ??
-      pick(response, "account_number") ??
-      "",
+        pick(response, "account_number"),
+      "virtual account number",
+      "Squad virtual account",
+    ),
     bank: pick(response, "bank") ?? pick(response, "bank_name"),
     customerIdentifier:
       pick(response, "customer_identifier") ?? input.customerIdentifier,
@@ -90,7 +118,11 @@ export async function resolveNuban(input: {
   );
 
   return {
-    accountName: pick(response, "account_name") ?? "",
+    accountName: requireSquadField(
+      pick(response, "account_name"),
+      "account name",
+      "Squad account lookup",
+    ),
     raw: response,
   };
 }

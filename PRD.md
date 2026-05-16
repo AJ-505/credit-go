@@ -16,17 +16,18 @@ Millions of creditworthy Nigerians cannot access asset financing because traditi
 
 **CreditGo** is a behavioral credit infrastructure that connects three pillars:
 
-| Pillar | What It Does | Why It Matters |
-|---|---|---|
+| Pillar                | What It Does                                                                                                                                               | Why It Matters                                           |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
 | **Save-to-Pay Vault** | Users save directly on-platform or link existing savings (PiggyVest, Cowrywise, bank) to build a "Repayment Vault" that serves as psychological collateral | De-risks borrowers without requiring physical collateral |
-| **Asset Marketplace** | Users buy electronics, solar, and appliances via BNPL/installments through integrated provider network | Converts savings history into purchasing power |
-| **Task Marketplace** | Freelancers complete micro-gigs (content writing, design, data entry, virtual assistance) on-platform as proof of consistent income | Gives gig-economy workers a credit path |
+| **Asset Marketplace** | Users buy electronics, solar, and appliances via BNPL/installments through integrated provider network                                                     | Converts savings history into purchasing power           |
+| **Task Marketplace**  | Freelancers complete micro-gigs (content writing, design, data entry, virtual assistance) on-platform as proof of consistent income                        | Gives gig-economy workers a credit path                  |
 
 ### 1.3 Unique Value Proposition
 
 > "CreditGo is not a lender. We are a **trust intelligence layer** that uses your savings behaviour, work history, and spending patterns to unlock asset financing — no collateral, no traditional credit score required."
 
 **Core innovations:**
+
 - **Savings-Linked Credit** — First platform in Nigeria to use PiggyVest/Cowrywise savings history as a credit signal
 - **Proof-of-Work Scoring** — Freelancers build credit by completing verifiable micro-gigs rather than submitting bank statements
 - **Real-time Trust Score** — BTS (Behavioral Trust Score) updates daily based on savings streaks, not monthly bureau reports
@@ -37,21 +38,21 @@ Millions of creditworthy Nigerians cannot access asset financing because traditi
 
 ### 2.1 Borrower Segments
 
-| Segment | Size | Key Need | Verification Method |
-|---|---|---|---|
-| **Government Workers** | ~4M | Salary advances, device financing | IPPIS number, official ID, payroll history |
-| **Corporate Employees** | ~8M | Laptop, phone, solar financing | Work email, LinkedIn, 6-month statement |
-| **Freelancers / Gig Workers** | ~20M+ | Income-smoothing, equipment financing | Mono open banking, platform work history |
-| **Savings-First Users** | ~6M (PiggyVest users) | Convert savings into purchasing power | PiggyVest API, savings history |
+| Segment                       | Size                  | Key Need                              | Verification Method                        |
+| ----------------------------- | --------------------- | ------------------------------------- | ------------------------------------------ |
+| **Government Workers**        | ~4M                   | Salary advances, device financing     | IPPIS number, official ID, payroll history |
+| **Corporate Employees**       | ~8M                   | Laptop, phone, solar financing        | Work email, LinkedIn, 6-month statement    |
+| **Freelancers / Gig Workers** | ~20M+                 | Income-smoothing, equipment financing | Mono open banking, platform work history   |
+| **Savings-First Users**       | ~6M (PiggyVest users) | Convert savings into purchasing power | PiggyVest API, savings history             |
 
 ### 2.2 Lender Segments
 
-| Segment | Need |
-|---|---|
+| Segment                                   | Need                                                |
+| ----------------------------------------- | --------------------------------------------------- |
 | **BNPL Providers** (Carbon Zero, CredPal) | Pre-qualified leads with verifiable savings history |
-| **Device Financing Companies** | Risk-scored borrowers with active repayment vaults |
-| **Micro-lenders** | Real-time savings health monitoring |
-| **Solar/Asset Finance Companies** | Automated underwriting for green assets |
+| **Device Financing Companies**            | Risk-scored borrowers with active repayment vaults  |
+| **Micro-lenders**                         | Real-time savings health monitoring                 |
+| **Solar/Asset Finance Companies**         | Automated underwriting for green assets             |
 
 ---
 
@@ -65,14 +66,15 @@ This is the core differentiator. Users build a "Repayment Vault" that serves as 
 
 Users connect existing savings accounts from:
 
-| Platform | Integration Method | What We Read |
-|---|---|---|
-| **PiggyVest** | PiggyVest Business API (via customer wallet interest/balance endpoints) | Savings balance, streak length, total saved |
-| **Cowrywise** | Mono open banking (if bank-linked) or statement upload | Savings history |
-| **Bank Savings Accounts** | Mono Financial Data API | Transaction history, average balance |
+| Platform                  | Integration Method                                                      | What We Read                                |
+| ------------------------- | ----------------------------------------------------------------------- | ------------------------------------------- |
+| **PiggyVest**             | PiggyVest Business API (via customer wallet interest/balance endpoints) | Savings balance, streak length, total saved |
+| **Cowrywise**             | Mono open banking (if bank-linked) or statement upload                  | Savings history                             |
+| **Bank Savings Accounts** | Mono Financial Data API                                                 | Transaction history, average balance        |
 
 **API Integration Detail (PiggyVest via Mono):**
 Since PiggyVest doesn't expose a read-only savings-history API, we use **Mono Connect** → user authenticates their PiggyVest wallet bank account → Mono returns transaction history showing inflows/outflows to PiggyVest. This reveals:
+
 - Regularity of savings (weekly/biweekly/monthly)
 - Amount consistency
 - Withdrawal patterns (frequent vs. disciplined)
@@ -81,14 +83,15 @@ Since PiggyVest doesn't expose a read-only savings-history API, we use **Mono Co
 
 Users can save directly into a CreditGo-managed wallet:
 
-| Feature | Details |
-|---|---|
-| **Daily Savings Streak** | Auto-sweep from bank account via Squad Direct Debit mandate |
-| **Vault Types** | Locked (cannot withdraw until loan repaid), Flex (can withdraw but loses streak) |
-| **Interest** | Users earn interest on vault balances (powered by PiggyVest Business wallet interest API) |
-| **Target-Based** | "Save ₦50,000 in 3 months to unlock ₦350,000 device financing" |
+| Feature                  | Details                                                                                   |
+| ------------------------ | ----------------------------------------------------------------------------------------- |
+| **Daily Savings Streak** | Auto-sweep from bank account via Squad Direct Debit mandate                               |
+| **Vault Types**          | Locked (cannot withdraw until loan repaid), Flex (can withdraw but loses streak)          |
+| **Interest**             | Users earn interest on vault balances (powered by PiggyVest Business wallet interest API) |
+| **Target-Based**         | "Save ₦50,000 in 3 months to unlock ₦350,000 device financing"                            |
 
 **Technical Implementation:**
+
 - Squad Direct Debit Mandate → daily/weekly sweep
 - PiggyVest Business Wallet API → store funds in interest-yielding wallets
 - Squad Virtual Account → each user gets a dedicated account number for manual top-ups
@@ -109,12 +112,12 @@ Users buy electronics, appliances, solar, and other assets through CreditGo's in
 
 #### 3.2.1 Available Asset Categories
 
-| Category | Examples | Provider Integration | Typical Price Range |
-|---|---|---|---|
-| **Laptops** | MacBook, Dell, HP, Lenovo | Direct partnerships + PoS integration | ₦250K - ₦2M |
-| **Phones** | iPhone, Samsung, Tecno, Infinix | PoS integration + distributor APIs | ₦100K - ₦1.5M |
-| **Solar** | Panels, inverters, batteries | Solar provider partnerships | ₦500K - ₦5M |
-| **Home Appliances** | Generators, fridges, AC | Retailer partnerships | ₦200K - ₦1M |
+| Category            | Examples                        | Provider Integration                  | Typical Price Range |
+| ------------------- | ------------------------------- | ------------------------------------- | ------------------- |
+| **Laptops**         | MacBook, Dell, HP, Lenovo       | Direct partnerships + PoS integration | ₦250K - ₦2M         |
+| **Phones**          | iPhone, Samsung, Tecno, Infinix | PoS integration + distributor APIs    | ₦100K - ₦1.5M       |
+| **Solar**           | Panels, inverters, batteries    | Solar provider partnerships           | ₦500K - ₦5M         |
+| **Home Appliances** | Generators, fridges, AC         | Retailer partnerships                 | ₦200K - ₦1M         |
 
 #### 3.2.2 How It Works (Provider-Agnostic)
 
@@ -128,19 +131,19 @@ We don't hold inventory. We act as a **credit layer** on top of existing merchan
 
 **Provider Integration Points:**
 
-| Method | Providers | How |
-|---|---|---|
-| **PoS / Inventory API** | Slot, Pointek, 3C+ | Real-time price & stock sync |
-| **Affiliate Links** | Jumia, Konga | Track purchases; CreditGo pays on confirmation |
-| **Direct Partnership** | Solar providers, SME suppliers | Invoice-based; CreditGo disburses on delivery confirmation |
+| Method                  | Providers                      | How                                                        |
+| ----------------------- | ------------------------------ | ---------------------------------------------------------- |
+| **PoS / Inventory API** | Slot, Pointek, 3C+             | Real-time price & stock sync                               |
+| **Affiliate Links**     | Jumia, Konga                   | Track purchases; CreditGo pays on confirmation             |
+| **Direct Partnership**  | Solar providers, SME suppliers | Invoice-based; CreditGo disburses on delivery confirmation |
 
 #### 3.2.3 Repayment Models
 
-| Model | Description | Best For |
-|---|---|---|
-| **Vault Drawdown** | Lump sum repaid from vault balance | Large purchases (solar) |
-| **Installments** | Monthly deductions from vault or bank | Electronics (phones, laptops) |
-| **Income Share** | % of future Task Marketplace earnings | Freelancers |
+| Model              | Description                           | Best For                      |
+| ------------------ | ------------------------------------- | ----------------------------- |
+| **Vault Drawdown** | Lump sum repaid from vault balance    | Large purchases (solar)       |
+| **Installments**   | Monthly deductions from vault or bank | Electronics (phones, laptops) |
+| **Income Share**   | % of future Task Marketplace earnings | Freelancers                   |
 
 ### 3.3 Pillar 3: Task Marketplace (Proof-of-Work for Freelancers)
 
@@ -148,26 +151,26 @@ A micro-gig platform where freelancers complete verifiable tasks to build their 
 
 #### 3.3.1 Task Categories
 
-| Category | Examples | Payout (Per Task) | Verification Method |
-|---|---|---|---|
-| **Content Writing** | Blog posts, product descriptions, social media captions | ₦2K - ₦20K | Editor approval + client rating |
-| **Data Entry** | Form filling, spreadsheet cleaning, data extraction | ₦1K - ₦10K | Automated validation |
-| **Design** | Canva flyers, social media graphics, basic logos | ₦3K - ₦15K | Client approval |
-| **Virtual Assistance** | Email management, scheduling, research | ₦5K - ₦30K | Time-tracked + client rating |
-| **Transcription** | Audio/video to text | ₦2K - ₦8K | Automated accuracy check |
-| **AI Training** | Data labeling, content moderation, prompt testing | ₦3K - ₦12K | Quality score |
+| Category               | Examples                                                | Payout (Per Task) | Verification Method             |
+| ---------------------- | ------------------------------------------------------- | ----------------- | ------------------------------- |
+| **Content Writing**    | Blog posts, product descriptions, social media captions | ₦2K - ₦20K        | Editor approval + client rating |
+| **Data Entry**         | Form filling, spreadsheet cleaning, data extraction     | ₦1K - ₦10K        | Automated validation            |
+| **Design**             | Canva flyers, social media graphics, basic logos        | ₦3K - ₦15K        | Client approval                 |
+| **Virtual Assistance** | Email management, scheduling, research                  | ₦5K - ₦30K        | Time-tracked + client rating    |
+| **Transcription**      | Audio/video to text                                     | ₦2K - ₦8K         | Automated accuracy check        |
+| **AI Training**        | Data labeling, content moderation, prompt testing       | ₦3K - ₦12K        | Quality score                   |
 
 #### 3.3.2 Credit Impact Model
 
 Each completed task contributes to the freelancer's Trust Score:
 
-| Factor | Weight | How It Works |
-|---|---|---|
-| **Task Completion Rate** | 30% | % of accepted tasks completed on time |
-| **Earnings Consistency** | 25% | Number of weeks with ≥ 1 completed task |
-| **Client Rating** | 20% | Average rating across completed tasks |
-| **Earnings Growth** | 15% | Trajectory of per-task earnings over time |
-| **Task Diversity** | 10% | Number of distinct task categories attempted |
+| Factor                   | Weight | How It Works                                 |
+| ------------------------ | ------ | -------------------------------------------- |
+| **Task Completion Rate** | 30%    | % of accepted tasks completed on time        |
+| **Earnings Consistency** | 25%    | Number of weeks with ≥ 1 completed task      |
+| **Client Rating**        | 20%    | Average rating across completed tasks        |
+| **Earnings Growth**      | 15%    | Trajectory of per-task earnings over time    |
+| **Task Diversity**       | 10%    | Number of distinct task categories attempted |
 
 #### 3.3.3 Business Model
 
@@ -183,31 +186,31 @@ The BTS is the central engine. It ranges from **0 to 100** and updates daily.
 
 ### 4.1 Score Components
 
-| Component | Weight | Source | Update Frequency |
-|---|---|---|---|
-| **Savings Streak** | 35% | Vault balance + daily save consistency | Daily |
-| **On-time Repayment** | 30% | Installment payment history | Per payment |
-| **Account Liquidity** | 15% | Average vault balance over 30 days | Daily |
-| **Income Stability** | 10% | Consistency of income (bank or task earnings) | Weekly |
-| **Identity Verification** | 10% | BVN/NIN + email domain + task rating | One-time |
+| Component                 | Weight | Source                                        | Update Frequency |
+| ------------------------- | ------ | --------------------------------------------- | ---------------- |
+| **Savings Streak**        | 35%    | Vault balance + daily save consistency        | Daily            |
+| **On-time Repayment**     | 30%    | Installment payment history                   | Per payment      |
+| **Account Liquidity**     | 15%    | Average vault balance over 30 days            | Daily            |
+| **Income Stability**      | 10%    | Consistency of income (bank or task earnings) | Weekly           |
+| **Identity Verification** | 10%    | BVN/NIN + email domain + task rating          | One-time         |
 
 ### 4.2 Score Tiers
 
-| Tier | Score Range | Unlocks |
-|---|---|---|
-| **Bronze** | 0-30 | Access to Task Marketplace only |
-| **Silver** | 31-55 | Devices up to ₦200K; 50% down payment required |
-| **Gold** | 56-75 | Devices up to ₦1M; 25% down payment |
-| **Platinum** | 76-100 | Devices up to ₦5M; 0% down; best rates |
+| Tier         | Score Range | Unlocks                                        |
+| ------------ | ----------- | ---------------------------------------------- |
+| **Bronze**   | 0-30        | Access to Task Marketplace only                |
+| **Silver**   | 31-55       | Devices up to ₦200K; 50% down payment required |
+| **Gold**     | 56-75       | Devices up to ₦1M; 25% down payment            |
+| **Platinum** | 76-100      | Devices up to ₦5M; 0% down; best rates         |
 
 ### 4.3 Gamification Mechanics
 
-| Mechanic | Effect |
-|---|---|
-| **Daily Savings Streak** | +1 point per day (capped at 35 pts); resets to 0 if missed |
-| **Milestone Badges** | "7-Day Streak", "First Repayment", "₦100K Saved" |
-| **Score Boosts** | Complete "Credit School" (+5 pts), refer a friend (+3 pts) |
-| **Penalties** | Missed repayment (-15 pts), early vault withdrawal (-10 pts) |
+| Mechanic                 | Effect                                                       |
+| ------------------------ | ------------------------------------------------------------ |
+| **Daily Savings Streak** | +1 point per day (capped at 35 pts); resets to 0 if missed   |
+| **Milestone Badges**     | "7-Day Streak", "First Repayment", "₦100K Saved"             |
+| **Score Boosts**         | Complete "Credit School" (+5 pts), refer a friend (+3 pts)   |
+| **Penalties**            | Missed repayment (-15 pts), early vault withdrawal (-10 pts) |
 
 ---
 
@@ -215,45 +218,45 @@ The BTS is the central engine. It ranges from **0 to 100** and updates daily.
 
 ### 5.1 Borrower-Side Requirements
 
-| ID | Requirement | Priority |
-|---|---|---|
-| FR-01 | User can sign up with email/phone + BVN verification (via Squad BVN API) | P0 |
-| FR-02 | User can link external savings accounts (PiggyVest via Mono, bank accounts via Mono) | P0 |
-| FR-03 | User can create an on-platform savings vault with auto-debit mandate | P0 |
-| FR-04 | User can view their Behavioral Trust Score with breakdown | P0 |
-| FR-05 | User can browse Asset Marketplace filtered by score tier & category | P0 |
-| FR-06 | User can apply for asset financing with one-click approval | P0 |
-| FR-07 | User can browse and accept micro-tasks in Task Marketplace | P1 |
-| FR-08 | User can view task history and earnings dashboard | P1 |
-| FR-09 | User can complete "Credit School" interactive onboarding | P1 |
-| FR-10 | User can set savings targets linked to specific asset goals | P1 |
-| FR-11 | User can refer friends and earn score boosts | P2 |
-| FR-12 | User can download transaction history and score PDF | P2 |
+| ID    | Requirement                                                                          | Priority |
+| ----- | ------------------------------------------------------------------------------------ | -------- |
+| FR-01 | User can sign up with email/phone + BVN verification (via Squad BVN API)             | P0       |
+| FR-02 | User can link external savings accounts (PiggyVest via Mono, bank accounts via Mono) | P0       |
+| FR-03 | User can create an on-platform savings vault with auto-debit mandate                 | P0       |
+| FR-04 | User can view their Behavioral Trust Score with breakdown                            | P0       |
+| FR-05 | User can browse Asset Marketplace filtered by score tier & category                  | P0       |
+| FR-06 | User can apply for asset financing with one-click approval                           | P0       |
+| FR-07 | User can browse and accept micro-tasks in Task Marketplace                           | P1       |
+| FR-08 | User can view task history and earnings dashboard                                    | P1       |
+| FR-09 | User can complete "Credit School" interactive onboarding                             | P1       |
+| FR-10 | User can set savings targets linked to specific asset goals                          | P1       |
+| FR-11 | User can refer friends and earn score boosts                                         | P2       |
+| FR-12 | User can download transaction history and score PDF                                  | P2       |
 
 ### 5.2 Lender-Side Requirements
 
-| ID | Requirement | Priority |
-|---|---|---|
-| FR-L01 | Lender can register and complete business KYC | P0 |
-| FR-L02 | Lender can configure risk filters (min score, asset type, user category) | P0 |
-| FR-L03 | Lender can view pre-qualified leads matching their parameters | P0 |
-| FR-L04 | Lender can view "Savings Health" of active borrowers in real-time | P0 |
-| FR-L05 | Lender can approve/reject loan requests with one click | P1 |
-| FR-L06 | Lender can report defaults to shared registry | P1 |
-| FR-L07 | Lender can view portfolio analytics (default rate, avg score, total exposure) | P1 |
-| FR-L08 | Lender receives webhook notifications on borrower score changes | P2 |
+| ID     | Requirement                                                                   | Priority |
+| ------ | ----------------------------------------------------------------------------- | -------- |
+| FR-L01 | Lender can register and complete business KYC                                 | P0       |
+| FR-L02 | Lender can configure risk filters (min score, asset type, user category)      | P0       |
+| FR-L03 | Lender can view pre-qualified leads matching their parameters                 | P0       |
+| FR-L04 | Lender can view "Savings Health" of active borrowers in real-time             | P0       |
+| FR-L05 | Lender can approve/reject loan requests with one click                        | P1       |
+| FR-L06 | Lender can report defaults to shared registry                                 | P1       |
+| FR-L07 | Lender can view portfolio analytics (default rate, avg score, total exposure) | P1       |
+| FR-L08 | Lender receives webhook notifications on borrower score changes               | P2       |
 
 ### 5.3 System-Wide Requirements
 
-| ID | Requirement | Priority |
-|---|---|---|
-| FR-S01 | Automated underwriting engine calculates Safe Limit (max 35% DTI) | P0 |
-| FR-S02 | Behavioral Trust Score recalculates daily | P0 |
-| FR-S03 | Shared Default Registry — borrower flagged by one lender triggers ecosystem-wide score drop | P0 |
-| FR-S04 | Squad webhook receiver for payment/disbursement notifications | P0 |
-| FR-S05 | Email + SMS notifications (via Squad SMS API) for due payments | P1 |
-| FR-S06 | Admin dashboard for CreditGo operators | P1 |
-| FR-S07 | Audit log for all score changes and financial transactions | P2 |
+| ID     | Requirement                                                                                 | Priority |
+| ------ | ------------------------------------------------------------------------------------------- | -------- |
+| FR-S01 | Automated underwriting engine calculates Safe Limit (max 35% DTI)                           | P0       |
+| FR-S02 | Behavioral Trust Score recalculates daily                                                   | P0       |
+| FR-S03 | Shared Default Registry — borrower flagged by one lender triggers ecosystem-wide score drop | P0       |
+| FR-S04 | Squad webhook receiver for payment/disbursement notifications                               | P0       |
+| FR-S05 | Email + SMS notifications (via Squad SMS API) for due payments                              | P1       |
+| FR-S06 | Admin dashboard for CreditGo operators                                                      | P1       |
+| FR-S07 | Audit log for all score changes and financial transactions                                  | P2       |
 
 ---
 
@@ -261,52 +264,53 @@ The BTS is the central engine. It ranges from **0 to 100** and updates daily.
 
 ### 6.1 Identity & Verification
 
-| API | Purpose | Endpoint | Cost |
-|---|---|---|---|
-| **Squad BVN Resolution** | Verify BVN details | `Squad profile API` | Free with Squad account |
-| **Mono Identity Verification** | NIN lookup, name match | `POST /v2/lookup` | Pay-per-call |
-| **LumiID** | NIN/BVN/CAC single endpoint | `POST /identities/verify` | ₦50-₦150 per call |
+| API                            | Purpose                                                   | Endpoint                  | Cost                    |
+| ------------------------------ | --------------------------------------------------------- | ------------------------- | ----------------------- |
+| **Squad BVN Resolution**       | Verify BVN details                                        | `Squad profile API`       | Free with Squad account |
+| **Mono Identity Verification** | NIN lookup, name match                                    | `POST /v2/lookup`         | Pay-per-call            |
+| **Mono Lookup**                | NIN verification/validation for borrower and director KYC | `POST /v3/lookup/nin`     | Partner lookup pricing  |
+| **LumiID**                     | CAC verification only until CAC migrates                  | `POST /identities/verify` | ₦50-₦150 per call       |
 
 ### 6.2 Open Banking & Data
 
-| API | Purpose | Endpoint | Cost |
-|---|---|---|---|
-| **Mono Connect** | Link bank accounts, fetch transactions | `Mono Connect SDK` + `GET /v2/transactions` | Free to connect; pay-per-data-fetch |
-| **Mono Statements** | Fetch 6-12 month bank statements | `POST /v2/statements` | Per statement |
-| **Mono Income** | Income analysis from transaction data | `GET /v2/income` | Per analysis |
+| API                 | Purpose                                | Endpoint                                    | Cost                                |
+| ------------------- | -------------------------------------- | ------------------------------------------- | ----------------------------------- |
+| **Mono Connect**    | Link bank accounts, fetch transactions | `Mono Connect SDK` + `GET /v2/transactions` | Free to connect; pay-per-data-fetch |
+| **Mono Statements** | Fetch 6-12 month bank statements       | `POST /v2/statements`                       | Per statement                       |
+| **Mono Income**     | Income analysis from transaction data  | `GET /v2/income`                            | Per analysis                        |
 
 ### 6.3 Savings Integration
 
-| API | Purpose | Endpoint | Cost |
-|---|---|---|---|
-| **PiggyVest Business** | Create wallets, accrue interest, transfers | `POST /api/wallet/create`, `POST /api/wallet/interest` | Per transaction |
-| **PiggyVest Pay with Pocket** | Direct payment from user's Pocket | SDK integration | Per transaction |
+| API                           | Purpose                                    | Endpoint                                               | Cost            |
+| ----------------------------- | ------------------------------------------ | ------------------------------------------------------ | --------------- |
+| **PiggyVest Business**        | Create wallets, accrue interest, transfers | `POST /api/wallet/create`, `POST /api/wallet/interest` | Per transaction |
+| **PiggyVest Pay with Pocket** | Direct payment from user's Pocket          | SDK integration                                        | Per transaction |
 
 Note: For reading PiggyVest savings history, we use **Mono Connect** — the user authenticates via Mono, which connects to their bank account. PiggyVest inflows/outflows appear as bank transactions tagged with "PIGGYVEST" or "SAVINGS" descriptors, enabling us to infer savings behavior.
 
 ### 6.4 Payments & Transfers
 
-| API | Purpose | Endpoint | Cost |
-|---|---|---|---|
-| **Squad Payment Gateway** | Card payments, USSD, bank transfers | `POST /transaction/initiate` | 1.2%/txn (cap ₦1,500) |
-| **Squad Transfer API** | Disburse funds to merchants/lenders | `POST /payout/transfer` | ₦8-₦40/txn |
-| **Squad Direct Debit** | Auto-sweep from user bank account | `POST /transaction/mandate/create` | Per txn fee |
-| **Squad Virtual Account** | Dedicated account numbers for user vaults | `POST /virtual-account` | 0.25%/txn (cap ₦1,000) |
-| **Squad Recurring Charges** | Tokenize card for recurring repayments | `POST /transaction/charge_card` | Per txn fee |
+| API                         | Purpose                                   | Endpoint                           | Cost                   |
+| --------------------------- | ----------------------------------------- | ---------------------------------- | ---------------------- |
+| **Squad Payment Gateway**   | Card payments, USSD, bank transfers       | `POST /transaction/initiate`       | 1.2%/txn (cap ₦1,500)  |
+| **Squad Transfer API**      | Disburse funds to merchants/lenders       | `POST /payout/transfer`            | ₦8-₦40/txn             |
+| **Squad Direct Debit**      | Auto-sweep from user bank account         | `POST /transaction/mandate/create` | Per txn fee            |
+| **Squad Virtual Account**   | Dedicated account numbers for user vaults | `POST /virtual-account`            | 0.25%/txn (cap ₦1,000) |
+| **Squad Recurring Charges** | Tokenize card for recurring repayments    | `POST /transaction/charge_card`    | Per txn fee            |
 
 ### 6.5 Communication
 
-| API | Purpose | Endpoint | Cost |
-|---|---|---|---|
-| **Squad SMS API** | Repayment reminders, score updates | `POST /vending/sms` | Per SMS |
-| **Termii** | OTP, transactional SMS | Various | ₦2-₦4/SMS |
+| API               | Purpose                            | Endpoint            | Cost      |
+| ----------------- | ---------------------------------- | ------------------- | --------- |
+| **Squad SMS API** | Repayment reminders, score updates | `POST /vending/sms` | Per SMS   |
+| **Termii**        | OTP, transactional SMS             | Various             | ₦2-₦4/SMS |
 
 ### 6.6 VAS (Value Added Services)
 
-| API | Purpose | Endpoint |
-|---|---|---|
-| **Squad Airtime Vending** | Users can buy airtime/data from dashboard | `POST /vending/purchase/airtime` |
-| **Squad Electricity** | Pay electricity bills (data source for scoring) | `POST /vending/electricity` |
+| API                       | Purpose                                         | Endpoint                         |
+| ------------------------- | ----------------------------------------------- | -------------------------------- |
+| **Squad Airtime Vending** | Users can buy airtime/data from dashboard       | `POST /vending/purchase/airtime` |
+| **Squad Electricity**     | Pay electricity bills (data source for scoring) | `POST /vending/electricity`      |
 
 ---
 
@@ -443,15 +447,15 @@ Note: For reading PiggyVest savings history, we use **Mono Connect** — the use
 
 ## 8. Non-Functional Requirements
 
-| Requirement | Specification |
-|---|---|
-| **Performance** | Trust Score calculation < 2s; page load < 3s on 3G |
-| **Availability** | 99.5% uptime (Squad APIs have separate SLA) |
-| **Security** | AES-256 at rest; TLS 1.3 in transit; HMAC webhook validation |
-| **Compliance** | NDPA 2023, CBN Open Banking Framework, FCCPC DEON Regulations |
-| **Scalability** | Handle 10K concurrent users at MVP (horizontal scaling ready) |
-| **Accessibility** | PWA with offline mode; screen-reader compatible |
-| **Data Localization** | Primary DB within Nigeria (or cloud with NDPA compliance) |
+| Requirement           | Specification                                                 |
+| --------------------- | ------------------------------------------------------------- |
+| **Performance**       | Trust Score calculation < 2s; page load < 3s on 3G            |
+| **Availability**      | 99.5% uptime (Squad APIs have separate SLA)                   |
+| **Security**          | AES-256 at rest; TLS 1.3 in transit; HMAC webhook validation  |
+| **Compliance**        | NDPA 2023, CBN Open Banking Framework, FCCPC DEON Regulations |
+| **Scalability**       | Handle 10K concurrent users at MVP (horizontal scaling ready) |
+| **Accessibility**     | PWA with offline mode; screen-reader compatible               |
+| **Data Localization** | Primary DB within Nigeria (or cloud with NDPA compliance)     |
 
 ---
 
@@ -459,72 +463,72 @@ Note: For reading PiggyVest savings history, we use **Mono Connect** — the use
 
 ### 9.1 Launch Metrics (3 Months)
 
-| Metric | Target |
-|---|---|
-| Total registered users | 5,000 |
-| Active vault users (saved in last 7 days) | 1,500 |
-| Assets financed via marketplace | 500 |
-| Task Marketplace completions | 2,000 |
-| Average Trust Score improvement per user | +8 pts/month |
-| Default rate (over 90 days) | < 5% |
-| Lender partners onboarded | 10 |
+| Metric                                    | Target       |
+| ----------------------------------------- | ------------ |
+| Total registered users                    | 5,000        |
+| Active vault users (saved in last 7 days) | 1,500        |
+| Assets financed via marketplace           | 500          |
+| Task Marketplace completions              | 2,000        |
+| Average Trust Score improvement per user  | +8 pts/month |
+| Default rate (over 90 days)               | < 5%         |
+| Lender partners onboarded                 | 10           |
 
 ### 9.2 Behavioral Metrics
 
-| Metric | Definition |
-|---|---|
-| **Savings Streak Retention** | % of users maintaining 7+ day streak after 30 days |
+| Metric                           | Definition                                              |
+| -------------------------------- | ------------------------------------------------------- |
+| **Savings Streak Retention**     | % of users maintaining 7+ day streak after 30 days      |
 | **Vault-to-Purchase Conversion** | % of users who reach vault target and complete purchase |
-| **Task Repeat Rate** | % of freelancers who complete > 5 tasks |
-| **Score Accuracy** | Correlation between Trust Score and actual repayment |
-| **NPS** | User satisfaction (target: 40+) |
+| **Task Repeat Rate**             | % of freelancers who complete > 5 tasks                 |
+| **Score Accuracy**               | Correlation between Trust Score and actual repayment    |
+| **NPS**                          | User satisfaction (target: 40+)                         |
 
 ---
 
 ## 10. Competitive Landscape
 
-| Competitor | Strengths | Weaknesses | Our Advantage |
-|---|---|---|---|
-| **Carbon Zero** | Large user base, brand trust | Only salary earners, no savings integration | Freelancers welcome, savings-linked credit |
-| **CredPal** | 13K+ merchants, high limits | Traditional underwriting, no behavioral scoring | Behavioral scoring, proof-of-work |
-| **Veend** | Focused on govt workers | Extremely narrow segment | Multi-segment (govt + corporate + freelance) |
-| **M-KOPA** | Proven in asset financing | Kenya-focused, hardware-heavy | Nigeria-first, SaaS/platform model |
-| **FairMoney** | Strong ML credit scoring | Short-term loans only, not asset financing | Asset marketplace + savings vault |
-| **Branch** | Large user base | Not asset-specific, high interest | Save-to-Pay lowers risk and rates |
+| Competitor      | Strengths                    | Weaknesses                                      | Our Advantage                                |
+| --------------- | ---------------------------- | ----------------------------------------------- | -------------------------------------------- |
+| **Carbon Zero** | Large user base, brand trust | Only salary earners, no savings integration     | Freelancers welcome, savings-linked credit   |
+| **CredPal**     | 13K+ merchants, high limits  | Traditional underwriting, no behavioral scoring | Behavioral scoring, proof-of-work            |
+| **Veend**       | Focused on govt workers      | Extremely narrow segment                        | Multi-segment (govt + corporate + freelance) |
+| **M-KOPA**      | Proven in asset financing    | Kenya-focused, hardware-heavy                   | Nigeria-first, SaaS/platform model           |
+| **FairMoney**   | Strong ML credit scoring     | Short-term loans only, not asset financing      | Asset marketplace + savings vault            |
+| **Branch**      | Large user base              | Not asset-specific, high interest               | Save-to-Pay lowers risk and rates            |
 
 ---
 
 ## 11. Monetisation Model
 
-| Revenue Stream | How It Works | Target Margin |
-|---|---|---|
-| **Lender Fee** | 2-5% of each financed asset (paid by lender) | Primary revenue |
-| **Task Marketplace Fee** | 10-15% of task payout | Growth revenue |
-| **Vault Interest Spread** | Interest paid by PiggyVest Business (pass some to user, keep spread) | 1-2% margin |
-| **Premium Tiers** | "Pro" subscription: higher score ceiling, priority support | ₦2,500/month |
-| **API Access** | Third-party lenders pay for creditGo score API access | Per-call |
+| Revenue Stream            | How It Works                                                         | Target Margin   |
+| ------------------------- | -------------------------------------------------------------------- | --------------- |
+| **Lender Fee**            | 2-5% of each financed asset (paid by lender)                         | Primary revenue |
+| **Task Marketplace Fee**  | 10-15% of task payout                                                | Growth revenue  |
+| **Vault Interest Spread** | Interest paid by PiggyVest Business (pass some to user, keep spread) | 1-2% margin     |
+| **Premium Tiers**         | "Pro" subscription: higher score ceiling, priority support           | ₦2,500/month    |
+| **API Access**            | Third-party lenders pay for creditGo score API access                | Per-call        |
 
 ---
 
 ## 12. Implementation Phases
 
-| Phase | Timeline | Focus |
-|---|---|---|
-| **Phase 1: Foundation** | Weeks 1-4 | Auth, BVN/KYC, Mono Connect, Basic Trust Score, Vault creation |
-| **Phase 2: Marketplace** | Weeks 5-8 | Asset catalog, provider integrations, disbursement flow, direct debit |
-| **Phase 3: Tasks** | Weeks 9-12 | Task Marketplace, gig verification, score impact model |
-| **Phase 4: Lender Dashboard** | Weeks 13-16 | Risk filtering UI, real-time monitoring, default registry |
-| **Phase 5: Growth** | Weeks 17-20 | Referrals, gamification, premium tiers, API access |
+| Phase                         | Timeline    | Focus                                                                 |
+| ----------------------------- | ----------- | --------------------------------------------------------------------- |
+| **Phase 1: Foundation**       | Weeks 1-4   | Auth, BVN/KYC, Mono Connect, Basic Trust Score, Vault creation        |
+| **Phase 2: Marketplace**      | Weeks 5-8   | Asset catalog, provider integrations, disbursement flow, direct debit |
+| **Phase 3: Tasks**            | Weeks 9-12  | Task Marketplace, gig verification, score impact model                |
+| **Phase 4: Lender Dashboard** | Weeks 13-16 | Risk filtering UI, real-time monitoring, default registry             |
+| **Phase 5: Growth**           | Weeks 17-20 | Referrals, gamification, premium tiers, API access                    |
 
 ---
 
 ## 13. Risks & Mitigation
 
-| Risk | Likelihood | Impact | Mitigation |
-|---|---|---|---|
-| **PiggyVest blocks API scraping via Mono** | Medium | High | Direct PiggyVest Business API partnership; also accept manual statement upload |
-| **Freelancers fake task completions** | High | Medium | Automated quality checks; client verification; CAPTCHA-style validation tasks |
-| **Lenders don't trust behavioral scoring** | High | High | Start with one anchor lender; prove low default rate with MVP data |
-| **Squad Direct Debit sandbox limitations** | Medium | Medium | Card tokenization as fallback for MVP |
-| **Regulatory changes (NDPA, FCCPC)** | Low | High | Legal counsel; build explainable AI; user consent flows |
-| **Default rate > 10%** | Medium | High | Conservative vault requirements; strict score thresholds initially |
+| Risk                                       | Likelihood | Impact | Mitigation                                                                     |
+| ------------------------------------------ | ---------- | ------ | ------------------------------------------------------------------------------ |
+| **PiggyVest blocks API scraping via Mono** | Medium     | High   | Direct PiggyVest Business API partnership; also accept manual statement upload |
+| **Freelancers fake task completions**      | High       | Medium | Automated quality checks; client verification; CAPTCHA-style validation tasks  |
+| **Lenders don't trust behavioral scoring** | High       | High   | Start with one anchor lender; prove low default rate with MVP data             |
+| **Squad Direct Debit sandbox limitations** | Medium     | Medium | Card tokenization as fallback for MVP                                          |
+| **Regulatory changes (NDPA, FCCPC)**       | Low        | High   | Legal counsel; build explainable AI; user consent flows                        |
+| **Default rate > 10%**                     | Medium     | High   | Conservative vault requirements; strict score thresholds initially             |

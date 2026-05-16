@@ -58,6 +58,8 @@ yarn-error.log*
 __pycache__/
 *.pyc
 *.pyo
+venv/
+.venv/
 
 # training data
 training-data
