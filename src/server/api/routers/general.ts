@@ -1,11 +1,13 @@
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 
+import { env } from "@/env";
 import {
   createTRPCRouter,
   protectedProcedure,
   publicProcedure,
 } from "@/server/api/trpc";
+import { useDevMock } from "@/server/api/dev-mock";
 import {
   lender,
   onboardingDraft,
@@ -333,6 +335,55 @@ export const generalRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const devMock = useDevMock(env.MONO_SECRET_KEY, () => ({
+        accountId: "dev_mono_" + makeId("acct"),
+        monthCount: 6,
+        averageMonthlyIncome: 350000,
+        averageMonthlyOutflow: 180000,
+        salaryConfirmed: true,
+        monthlyIncome: 350000,
+      }));
+
+      if (devMock) {
+        const draft = await getOrCreateUserDraft(ctx.db, ctx.session.user.id);
+        const current = await ctx.db.query.user.findFirst({
+          where: eq(user.id, ctx.session.user.id),
+        });
+        const finalIncome = current?.monthlyIncomeNgn || devMock.monthlyIncome;
+        await ctx.db
+          .update(user)
+          .set({
+            monoBankAccountId: devMock.accountId,
+            monthlyIncomeNgn: finalIncome,
+            monthlyDebtNgn: devMock.averageMonthlyOutflow,
+            bankStatementMonths: devMock.monthCount,
+            employmentVerified: current?.employmentVerified || true,
+            onboardingStep: "reveal",
+            updatedAt: new Date(),
+          })
+          .where(eq(user.id, ctx.session.user.id));
+        await ctx.db
+          .update(onboardingDraft)
+          .set({
+            monoBankAccountId: devMock.accountId,
+            monthlyIncomeNgn: finalIncome,
+            monthlyDebtNgn: devMock.averageMonthlyOutflow,
+            bankStatementMonths: devMock.monthCount,
+            salaryConfirmed: true,
+            step: "reveal",
+            updatedAt: new Date(),
+          })
+          .where(eq(onboardingDraft.id, draft.id));
+        return {
+          accountId: devMock.accountId,
+          monthCount: devMock.monthCount,
+          averageMonthlyIncome: devMock.averageMonthlyIncome,
+          averageMonthlyOutflow: devMock.averageMonthlyOutflow,
+          salaryConfirmed: devMock.salaryConfirmed,
+          monthlyIncome: devMock.monthlyIncome,
+        };
+      }
+
       try {
         const exchange = await exchangeConnectCode(input.code);
         const transactions = await fetchTransactions(exchange.accountId);
@@ -394,6 +445,13 @@ export const generalRouter = createTRPCRouter({
     }),
 
   listGigPlatforms: protectedProcedure.query(async () => {
+    const devMock = useDevMock(env.CR3DENTIALS_API_KEY, () => [
+      { id: 1, name: "Upwork", title: "Upwork" },
+      { id: 2, name: "Fiverr", title: "Fiverr" },
+      { id: 3, name: "Shopify", title: "Shopify" },
+      { id: 4, name: "Deel", title: "Deel" },
+    ]);
+    if (devMock) return devMock;
     try {
       return await listCr3dentialsPlatforms();
     } catch (error) {
@@ -404,6 +462,34 @@ export const generalRouter = createTRPCRouter({
   createGigIncomeSession: protectedProcedure
     .input(z.object({ platformId: z.number().int().positive() }))
     .mutation(async ({ ctx, input }) => {
+      const devMock = useDevMock(env.CR3DENTIALS_API_KEY, () => ({
+        sessionId: "dev_cr3d_" + makeId("sess"),
+        embedUrl: "",
+        status: "CREATED",
+        raw: { mock: true },
+      }));
+      if (devMock) {
+        const current = await ctx.db.query.user.findFirst({
+          where: eq(user.id, ctx.session.user.id),
+        });
+        const draft = await getOrCreateUserDraft(ctx.db, ctx.session.user.id);
+        await ctx.db
+          .update(user)
+          .set({
+            cr3dentialsSessionId: devMock.sessionId,
+            onboardingStep: "freelancer_linkedin",
+          })
+          .where(eq(user.id, ctx.session.user.id));
+        await ctx.db
+          .update(onboardingDraft)
+          .set({
+            cr3dentialsSessionId: devMock.sessionId,
+            step: "freelancer_linkedin",
+            updatedAt: new Date(),
+          })
+          .where(eq(onboardingDraft.id, draft.id));
+        return devMock;
+      }
       const current = await ctx.db.query.user.findFirst({
         where: eq(user.id, ctx.session.user.id),
       });
@@ -440,6 +526,32 @@ export const generalRouter = createTRPCRouter({
   verifyCac: publicProcedure
     .input(z.object({ email: z.string().email(), rcNumber: z.string().min(4) }))
     .mutation(async ({ ctx, input }) => {
+      const devMock = useDevMock(env.LUMIID_API_KEY, () => ({
+        companyName: input.rcNumber,
+        company_name: input.rcNumber,
+        status: "ACTIVE",
+        rcNumber: input.rcNumber,
+        rc_number: input.rcNumber,
+        registrationDate: "01-01-2020",
+        registration_date: "01-01-2020",
+      }));
+      if (devMock) {
+        const id = makeId("lender");
+        await ctx.db.insert(lender).values({
+          id,
+          email: input.email,
+          businessName: devMock.companyName,
+          rcNumber: input.rcNumber,
+          cacStatus: "ACTIVE",
+          registrationDate: "01-01-2020",
+          onboardingStep: "kyc",
+        });
+        return {
+          lenderId: id,
+          businessName: devMock.companyName,
+          status: "ACTIVE",
+        };
+      }
       try {
         const data = await verifyCac(input.rcNumber);
         const businessName = data.companyName ?? data.company_name ?? "";
@@ -472,6 +584,23 @@ export const generalRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const devMock = useDevMock(env.LUMIID_API_KEY, () => ({
+        firstname: "Test",
+        lastname: "Director",
+      }));
+      if (devMock) {
+        await ctx.db
+          .update(lender)
+          .set({
+            directorName: `${devMock.firstname} ${devMock.lastname}`,
+            directorNin: input.nin,
+            directorBvn: input.bvn,
+            onboardingStep: "config",
+            updatedAt: new Date(),
+          })
+          .where(eq(lender.id, input.lenderId));
+        return { directorName: `${devMock.firstname} ${devMock.lastname}` };
+      }
       try {
         const data = await verifyNin(input.nin);
         await ctx.db

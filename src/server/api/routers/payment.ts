@@ -1,7 +1,9 @@
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 
+import { env } from "@/env";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { useDevMock } from "@/server/api/dev-mock";
 import {
   createVirtualAccount,
   resolveNuban,
@@ -24,6 +26,25 @@ export const paymentRouter = createTRPCRouter({
         where: eq(onboardingDraft.id, input.draftId),
       });
       if (!draft) throw new Error("Onboarding draft not found");
+
+      const devMock = useDevMock(env.SQUAD_SECRET_KEY, () => ({
+        virtualAccountNumber: "1234567890",
+        bank: "GTBank",
+        customerIdentifier: "dev_cg_" + makeId("cust"),
+        raw: { mock: true },
+      }));
+
+      if (devMock) {
+        await ctx.db.update(onboardingDraft).set({
+          email: input.email, bvn: input.bvn,
+          squadVirtualAccount: devMock.virtualAccountNumber,
+          squadCustomerIdentifier: devMock.customerIdentifier,
+          step: "register",
+          raw: { squadVault: devMock.raw },
+          updatedAt: new Date(),
+        }).where(eq(onboardingDraft.id, input.draftId));
+        return devMock;
+      }
 
       try {
         const customerIdentifier = makeId("cg");
@@ -85,6 +106,11 @@ export const paymentRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input }) => {
+      const devMock = useDevMock(env.SQUAD_SECRET_KEY, () => ({
+        accountName: "Test Business Name",
+        raw: { mock: true },
+      }));
+      if (devMock) return devMock;
       try {
         return await resolveNuban(input);
       } catch (error) {

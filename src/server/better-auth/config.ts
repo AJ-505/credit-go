@@ -8,7 +8,7 @@ import { getBaseUrl } from "@/utils";
 export const auth = betterAuth({
   baseURL: getBaseUrl(),
   database: drizzleAdapter(db, {
-    provider: "pg", // or "pg" or "mysql"
+    provider: "sqlite",
   }),
   emailAndPassword: {
     enabled: true,
