@@ -12,8 +12,7 @@ export async function GET(request: NextRequest) {
   }
 
   const next = request.nextUrl.searchParams.get("next") ?? "/onboarding/reveal";
-  const redirectUri =
-    env.LINKEDIN_REDIRECT_URI ?? `${appBaseUrl()}/api/linkedin/callback`;
+  const redirectUri = `${request.nextUrl.origin}/api/linkedin/callback`;
   const state = Buffer.from(JSON.stringify({ next })).toString("base64url");
   const url = new URL("https://www.linkedin.com/oauth/v2/authorization");
   url.searchParams.set("response_type", "code");

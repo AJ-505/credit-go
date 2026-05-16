@@ -727,17 +727,11 @@ function RegisterStep({
 
 function VaultSetupStep() {
   const router = useRouter();
-  const [amount, setAmount] = useState(5000);
   const [loading, setLoading] = useState(false);
+  const [amountInput, setAmountInput] = useState("5000");
   const [frequency, setFrequency] = useState<"daily" | "weekly" | "monthly">(
     "daily",
   );
-  const options = [
-    { value: 3000, label: "₦3,000" },
-    { value: 5000, label: "₦5,000" },
-    { value: 10000, label: "₦10,000" },
-    { value: 20000, label: "₦20,000" },
-  ];
   const frequencies = [
     { value: "daily", label: "Daily", next: "Today at 6:00 PM" },
     { value: "weekly", label: "Weekly", next: "Friday at 6:00 PM" },
@@ -753,6 +747,7 @@ function VaultSetupStep() {
         event.preventDefault();
         setLoading(true);
         const selected = frequencies.find((item) => item.value === frequency);
+        const amount = Number(amountInput.replace(/\D/g, "")) || 0;
         localStorage.setItem(
           "creditgo_vault_setup",
           JSON.stringify({
@@ -769,22 +764,14 @@ function VaultSetupStep() {
         <div className="mb-3 text-sm font-black text-stone-700">
           Auto-save amount
         </div>
-        <div className="grid gap-3 sm:grid-cols-4">
-          {options.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => setAmount(option.value)}
-              className={`rounded-lg border px-4 py-3 text-left font-black transition ${
-                amount === option.value
-                  ? "border-emerald-500 bg-emerald-50 text-emerald-800 ring-1 ring-emerald-500"
-                  : "border-stone-200 text-stone-800 hover:border-emerald-200"
-              }`}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
+        <input
+          type="text"
+          inputMode="numeric"
+          value={amountInput}
+          onChange={(e) => setAmountInput(e.target.value.replace(/\D/g, ""))}
+          className="h-12 w-full rounded-lg border border-stone-300 px-4 text-lg font-black outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+          placeholder="e.g. 5000"
+        />
       </div>
 
       <div>

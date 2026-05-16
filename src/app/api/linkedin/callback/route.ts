@@ -6,14 +6,14 @@ import { auth } from "@/server/better-auth";
 import { db } from "@/server/db";
 import { onboardingDraft, user } from "@/server/db/schema";
 import { apiFetch } from "@/server/integrations/http";
-import { appBaseUrl, stringSimilarity } from "@/server/onboarding/utils";
+import { stringSimilarity } from "@/server/onboarding/utils";
 
 export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get("code");
   const state = request.nextUrl.searchParams.get("state");
   const next = parseState(state) ?? "/onboarding/reveal";
   if (!code || !env.LINKEDIN_CLIENT_ID || !env.LINKEDIN_CLIENT_SECRET) {
-    return NextResponse.redirect(new URL(next, appBaseUrl()));
+    return NextResponse.redirect(new URL(next, request.nextUrl.origin));
   }
 
   const session = await auth.api.getSession({ headers: request.headers });
@@ -21,8 +21,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL("/onboarding/register", appBaseUrl()));
   }
 
-  const redirectUri =
-    env.LINKEDIN_REDIRECT_URI ?? `${appBaseUrl()}/api/linkedin/callback`;
+  const redirectUri = `${request.nextUrl.origin}/api/linkedin/callback`;
   const token = await apiFetch<Record<string, unknown>>(
     "https://www.linkedin.com/oauth/v2/accessToken",
     {

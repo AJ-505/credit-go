@@ -535,8 +535,8 @@ export const generalRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const devMock = useDevMock(env.MONO_SECRET_KEY, () => ({
-        firstname: "Test",
-        lastname: "Director",
+        firstname: "Prosperity",
+        lastname: "Olorunfemi",
       }));
       if (devMock) {
         await ctx.db
