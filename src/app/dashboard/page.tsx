@@ -1,147 +1,94 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { ArrowRight, Wallet, Target, TrendingUp } from "lucide-react";
 
-import { getSession } from "@/server/better-auth/server";
-import { db } from "@/server/db";
-import { user } from "@/server/db/schema";
-import { eq } from "drizzle-orm";
-
-export default async function DashboardPage() {
-  const session = await getSession();
-  if (!session?.user) redirect("/onboarding/register");
-
-  const profile = await db.query.user.findFirst({
-    where: eq(user.id, session.user.id),
-  });
-  if (!profile) redirect("/onboarding/register");
-
-  const actions = [
-    !profile.squadVirtualAccount && [
-      "Set up your repayment vault",
-      "/onboarding/bvn",
-      "High",
-    ],
-    !profile.monoBankAccountId && [
-      "Link your bank account",
-      "/onboarding/role",
-      "Medium",
-    ],
-    profile.persona === "freelancer" &&
-      !profile.cr3dentialsSessionId && [
-        "Verify your gig income",
-        "/onboarding/freelancer/income",
-        "Medium",
-      ],
-    !profile.linkedinConnected && [
-      "Connect LinkedIn",
-      "/onboarding/freelancer/linkedin",
-      "Low",
-    ],
-    ["Take Credit School", "#", "Medium"],
-  ].filter(Boolean) as Array<[string, string, string]>;
-
-  const score = profile.trustScore ?? 0;
-  const nextTier =
-    score >= 76
-      ? "Top tier"
-      : score >= 56
-        ? "Platinum at 76"
-        : score >= 31
-          ? "Gold at 56"
-          : "Silver at 31";
-
+export default function DashboardPage() {
   return (
-    <main className="min-h-screen bg-stone-50 px-4 py-8 text-stone-950">
-      <div className="mx-auto max-w-6xl space-y-6">
-        <div className="flex items-center justify-between">
-          <Link href="/" className="text-xl font-black tracking-tight">
-            CreditGo
-          </Link>
-          <span className="text-sm font-semibold text-stone-500">
-            {profile.email}
-          </span>
-        </div>
-        <section className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
-          <div className="rounded-lg border border-stone-200 bg-white p-6">
-            <div className="text-sm font-bold text-stone-400 uppercase">
-              Trust Score
-            </div>
-            <div className="mt-4 flex items-end gap-4">
-              <div className="text-7xl font-black text-emerald-700">
-                {score}
-              </div>
-              <div className="pb-2">
-                <div className="font-black uppercase">
-                  {profile.tier ?? "unscored"}
-                </div>
-                <div className="text-sm text-stone-500">{nextTier}</div>
-              </div>
-            </div>
-            <div className="mt-5 h-3 overflow-hidden rounded-full bg-stone-100">
-              <div
-                className="h-full bg-emerald-600"
-                style={{ width: `${score}%` }}
-              />
-            </div>
-          </div>
-          <div className="rounded-lg border border-stone-200 bg-white p-6">
-            <div className="text-sm font-bold text-stone-400 uppercase">
-              Safe Limit
-            </div>
-            <div className="mt-4 text-4xl font-black">
-              ₦{Math.round(profile.safeLimitNgn ?? 0).toLocaleString()}
-            </div>
-            <p className="mt-3 text-sm text-stone-500">
-              Based on verified income, identity, employment and bank data.
-            </p>
-          </div>
-        </section>
-        <section className="grid gap-5 lg:grid-cols-2">
-          <div className="rounded-lg border border-stone-200 bg-white p-6">
-            <h2 className="text-lg font-black">Score Breakdown</h2>
-            <div className="mt-4 space-y-3">
-              {Object.entries(profile.scoreBreakdown ?? {}).map(
-                ([key, value]) => (
-                  <div key={key}>
-                    <div className="mb-1 flex justify-between text-sm">
-                      <span>{key.replaceAll("_", " ")}</span>
-                      <span className="font-bold">
-                        {value > 0 ? "+" : ""}
-                        {value}
-                      </span>
-                    </div>
-                    <div className="h-2 rounded-full bg-stone-100">
-                      <div
-                        className="h-2 rounded-full bg-emerald-500"
-                        style={{
-                          width: `${Math.min(Math.abs(value) * 4, 100)}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                ),
-              )}
-            </div>
-          </div>
-          <div className="rounded-lg border border-stone-200 bg-white p-6">
-            <h2 className="text-lg font-black">Action Items</h2>
-            <div className="mt-4 space-y-3">
-              {actions.map(([label, href, priority]) => (
-                <Link
-                  key={label}
-                  href={href}
-                  className="flex items-center justify-between rounded-md border border-stone-200 px-4 py-3 text-sm font-semibold hover:border-emerald-500"
-                >
-                  <span>{label}</span>
-                  <span className="text-xs text-stone-400 uppercase">
-                    {priority}
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
+    <div className="flex flex-col gap-8">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Overview</h1>
+        <p className="text-muted-foreground">Welcome back. Here's your platform summary.</p>
       </div>
-    </main>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        {/* Trust Score Card */}
+        <div className="rounded-xl border bg-card text-card-foreground shadow">
+          <div className="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
+            <h3 className="tracking-tight text-sm font-medium">Trust Score</h3>
+          </div>
+          <div className="p-6 pt-0">
+            <div className="flex items-center gap-4">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-yellow-500">
+                <span className="text-2xl font-bold">72</span>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-yellow-500">GOLD</div>
+                <p className="text-xs text-muted-foreground">+3 this month</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Safe Limit Card */}
+        <div className="rounded-xl border bg-card text-card-foreground shadow flex flex-col justify-between">
+          <div className="p-6">
+            <h3 className="tracking-tight text-sm font-medium">Safe Limit</h3>
+            <div className="mt-2 text-4xl font-bold">₦650,000</div>
+            <p className="text-xs text-muted-foreground mt-1">Available to borrow</p>
+          </div>
+          <div className="p-6 pt-0">
+            <Link href="/dashboard/marketplace" className="text-sm text-primary font-medium flex items-center gap-1 hover:underline">
+              View Marketplace <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Savings Vault Summary */}
+      <div className="rounded-xl border bg-card text-card-foreground shadow">
+        <div className="p-6 flex flex-row items-center justify-between pb-2">
+          <h3 className="tracking-tight text-sm font-medium">Savings Vault</h3>
+          <Link href="/dashboard/vault" className="text-sm text-primary font-medium flex items-center gap-1 hover:underline">
+            Manage <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+        <div className="p-6 pt-0 grid gap-4 md:grid-cols-3">
+          <div>
+            <p className="text-sm text-muted-foreground">Vault Balance</p>
+            <p className="text-2xl font-bold">₦245,000</p>
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground">Streak</p>
+            <p className="text-xl font-semibold">12 days</p>
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground">Auto-sweep</p>
+            <p className="text-lg font-medium">₦5,000/day</p>
+            <p className="text-xs text-muted-foreground">Next: Today 6pm</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Action Cards */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <div className="rounded-xl border bg-card p-6 shadow">
+          <Wallet className="h-6 w-6 mb-4 text-primary" />
+          <h4 className="font-semibold">Get a Loan</h4>
+          <p className="text-sm text-muted-foreground mt-2 mb-4">Browse what you qualify for based on your score.</p>
+          <Link href="/dashboard/marketplace" className="text-sm text-primary font-medium">Browse →</Link>
+        </div>
+        <div className="rounded-xl border bg-card p-6 shadow">
+          <Target className="h-6 w-6 mb-4 text-primary" />
+          <h4 className="font-semibold">Save Faster</h4>
+          <p className="text-sm text-muted-foreground mt-2 mb-4">Increase your daily auto-sweep to build your limit.</p>
+          <Link href="/dashboard/vault" className="text-sm text-primary font-medium">Adjust →</Link>
+        </div>
+        <div className="rounded-xl border bg-card p-6 shadow">
+          <TrendingUp className="h-6 w-6 mb-4 text-primary" />
+          <h4 className="font-semibold">Improve Score</h4>
+          <p className="text-sm text-muted-foreground mt-2 mb-4">Take Credit School lessons for +5 points.</p>
+          <Link href="#" className="text-sm text-primary font-medium">Start →</Link>
+        </div>
+      </div>
+    </div>
   );
 }
