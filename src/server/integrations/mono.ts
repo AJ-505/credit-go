@@ -4,6 +4,7 @@ import { requireEnv } from "@/server/onboarding/utils";
 import { apiFetch } from "./http";
 
 type MonoObject = Record<string, unknown>;
+export type TelcoProvider = "mtn" | "airtel" | "glo" | "9mobile";
 
 function monoHeaders() {
   return {
@@ -26,7 +27,7 @@ function pickString(body: MonoObject, keys: string[]) {
 
 export async function initiateTelcoLogin(input: {
   phone: string;
-  provider: "mtn" | "airtel";
+  provider: TelcoProvider;
 }) {
   const path =
     env.MONO_TELCO_API_VERSION === "v3"
@@ -36,7 +37,7 @@ export async function initiateTelcoLogin(input: {
     service: "Mono Telco login",
     method: "POST",
     headers: monoHeaders(),
-    body: JSON.stringify(input),
+    body: JSON.stringify({ phone: input.phone, provider: input.provider }),
   });
 
   return {

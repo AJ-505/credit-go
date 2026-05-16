@@ -1,18 +1,19 @@
-import { and, eq, gte } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { z } from "zod";
 
+import { env } from "@/env";
 import {
   exchangeMonoCode,
   fetchTelcoIdentity,
   initiateTelcoLogin,
+  type TelcoProvider,
   verifyTelcoOtp,
 } from "@/server/integrations/mono";
 import { providerErrorToTrpc } from "@/server/integrations/http";
 import { verifyNin } from "@/server/integrations/lumiid";
-import { onboardingAttempt, onboardingDraft } from "@/server/db/schema";
+import { onboardingDraft } from "@/server/db/schema";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 import {
-  getClientIp,
   makeId,
   mapResidenceState,
   stringSimilarity,
@@ -22,26 +23,17 @@ const ninSchema = z.string().regex(/^\d{11}$/, "NIN must be exactly 11 digits");
 const phoneSchema = z
   .string()
   .regex(/^0\d{10}$/, "Phone number must be 11 digits and start with 0");
+const telcoProviderSchema = z.enum([
+  "mtn",
+  "airtel",
+  "glo",
+  "9mobile",
+] satisfies [TelcoProvider, TelcoProvider, TelcoProvider, TelcoProvider]);
 
 export const identificationRouter = createTRPCRouter({
   verifyNin: publicProcedure
     .input(z.object({ draftId: z.string().optional(), nin: ninSchema }))
     .mutation(async ({ ctx, input }) => {
-      const ipAddress = getClientIp(ctx.headers);
-      const cutoff = new Date(Date.now() - 60 * 60 * 1000);
-      const attempts = await ctx.db.query.onboardingAttempt.findMany({
-        where: and(
-          eq(onboardingAttempt.ipAddress, ipAddress),
-          eq(onboardingAttempt.target, "nin"),
-          eq(onboardingAttempt.success, false),
-          gte(onboardingAttempt.createdAt, cutoff),
-        ),
-      });
-
-      if (attempts.length >= 3) {
-        throw new Error("Too many attempts. Please wait 1 hour.");
-      }
-
       try {
         const data = await verifyNin(input.nin);
         const draftId = input.draftId ?? makeId("draft");
@@ -78,21 +70,8 @@ export const identificationRouter = createTRPCRouter({
             .values({ id: draftId, ...values });
         }
 
-        await ctx.db.insert(onboardingAttempt).values({
-          id: makeId("attempt"),
-          ipAddress,
-          target: "nin",
-          success: true,
-        });
-
         return { draftId, identity: values };
       } catch (error) {
-        await ctx.db.insert(onboardingAttempt).values({
-          id: makeId("attempt"),
-          ipAddress,
-          target: "nin",
-          success: false,
-        });
         providerErrorToTrpc(error, "NIN verification failed");
       }
     }),
@@ -102,10 +81,14 @@ export const identificationRouter = createTRPCRouter({
       z.object({
         draftId: z.string(),
         phone: phoneSchema,
-        provider: z.enum(["mtn", "airtel"]),
+        provider: telcoProviderSchema,
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      if (!env.MONO_SECRET_KEY) {
+        throw new Error("MONO_SECRET_KEY is not configured. Contact support.");
+      }
+
       try {
         const response = await initiateTelcoLogin(input);
         await ctx.db
@@ -127,6 +110,10 @@ export const identificationRouter = createTRPCRouter({
   verifyTelco: publicProcedure
     .input(z.object({ draftId: z.string(), otp: z.string().regex(/^\d{6}$/) }))
     .mutation(async ({ ctx, input }) => {
+      if (!env.MONO_SECRET_KEY) {
+        throw new Error("MONO_SECRET_KEY is not configured. Contact support.");
+      }
+
       const draft = await ctx.db.query.onboardingDraft.findFirst({
         where: eq(onboardingDraft.id, input.draftId),
       });
