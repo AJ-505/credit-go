@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   ArrowRight,
@@ -117,12 +117,12 @@ const slides: Slide[] = [
   },
 ];
 
-export default function BoostPage() {
+export default function OnboardingBoostPage() {
+  const router = useRouter();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [completed, setCompleted] = useState(false);
   const totalSlides = slides.length;
   const isLastSlide = currentSlide === totalSlides - 1;
-  const slide = slides[currentSlide];
 
   const handleNext = () => {
     if (isLastSlide) {
@@ -133,7 +133,7 @@ export default function BoostPage() {
           safeLimitNgn?: number;
           tier?: string;
         };
-        const currentScore = parsed.trustScore ?? 71;
+        const currentScore = parsed.trustScore ?? 0;
         parsed.trustScore = currentScore + 2;
         if (parsed.trustScore > 100) parsed.trustScore = 100;
         localStorage.setItem("creditgo_score_summary", JSON.stringify(parsed));
@@ -148,8 +148,6 @@ export default function BoostPage() {
   const handlePrev = () => {
     if (currentSlide > 0) setCurrentSlide((i) => i - 1);
   };
-
-  const IconComponent = slide.icon;
 
   if (completed) {
     return (
@@ -167,15 +165,17 @@ export default function BoostPage() {
             Continue building good habits to unlock even more.
           </p>
         </div>
-        <Link
-          href="/dashboard"
+        <button
+          onClick={() => router.push("/dashboard")}
           className="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-8 py-3 text-sm font-bold text-white shadow-lg transition-all hover:bg-emerald-700"
         >
-          Back to Dashboard <ArrowRight className="h-4 w-4" />
-        </Link>
+          Go to Dashboard <ArrowRight className="h-4 w-4" />
+        </button>
       </div>
     );
   }
+
+  const slide = slides[currentSlide]!;
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-8 py-8">
@@ -197,12 +197,12 @@ export default function BoostPage() {
       {/* Slide card */}
       <div
         key={currentSlide}
-        className="animate-in fade-in zoom-in-95 rounded-[2rem] border border-stone-200 bg-white p-10 shadow-lg duration-300"
+        className="rounded-[2rem] border border-stone-200 bg-white p-10 shadow-lg"
       >
         <div
-          className={`mb-8 flex h-16 w-16 items-center justify-center rounded-2xl ${colorMap[slide.color].bg} ${colorMap[slide.color].text}`}
+          className={`mb-8 flex h-16 w-16 items-center justify-center rounded-2xl ${colorMap[slide.color]!.bg} ${colorMap[slide.color]!.text}`}
         >
-          <IconComponent className="h-8 w-8" />
+          <slide.icon className="h-8 w-8" />
         </div>
 
         <h2 className="mb-6 text-2xl font-black leading-tight text-stone-900">

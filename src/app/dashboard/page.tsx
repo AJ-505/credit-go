@@ -262,7 +262,7 @@ export default function DashboardPage() {
           </Link>
 
           <Link
-            href="/dashboard/boost"
+            href="/dashboard/profile"
             className="group relative block overflow-hidden rounded-[1.5rem] border border-stone-200 bg-white p-8 shadow-sm transition-all duration-300 hover:-translate-y-2 hover:border-yellow-200 hover:shadow-xl"
           >
             <div className="absolute top-0 right-0 transform p-6 opacity-0 transition-opacity duration-500 group-hover:scale-150 group-hover:opacity-10">
@@ -275,7 +275,7 @@ export default function DashboardPage() {
               Boost Trust Score
             </h4>
             <p className="mb-8 leading-relaxed text-stone-500">
-              Complete Credit School modules to instantly gain +2 trust points.
+              Complete Credit School modules to instantly gain +5 trust points.
             </p>
             <span className="inline-flex items-center gap-2 rounded-full bg-stone-50 px-4 py-2 text-sm font-bold text-stone-900 transition-all group-hover:bg-yellow-50 group-hover:text-yellow-600">
               Start Learning{" "}
