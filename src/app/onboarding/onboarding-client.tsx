@@ -83,8 +83,7 @@ const borrowerNext: Record<string, string> = {
   identity: "/onboarding/phone",
   phone: "/onboarding/bvn",
   bvn: "/onboarding/register",
-  register: "/onboarding/vault",
-  "vault-setup": "/onboarding/role",
+  register: "/onboarding/role",
   role: "/onboarding/role",
   "freelancer-bank": "/onboarding/freelancer/income",
   "freelancer-income": "/onboarding/freelancer/linkedin",
@@ -103,7 +102,7 @@ const flowSteps = [
   { id: "phone", label: "Phone", icon: Phone },
   { id: "bvn", label: "Vault", icon: Banknote },
   { id: "register", label: "Account", icon: BadgeCheck },
-  { id: "vault-setup", label: "Savings", icon: Banknote },
+
   { id: "role", label: "Role", icon: BriefcaseBusiness },
   { id: "reveal", label: "Score", icon: CheckCircle2 },
 ];
@@ -218,8 +217,6 @@ export function BorrowerOnboarding({ step }: { step: Step }) {
             />
           ) : step === "register" ? (
             <RegisterStep draftId={draftId} draft={draft.data} onError={fail} />
-          ) : step === "vault-setup" ? (
-            <VaultSetupStep />
           ) : step === "role" ? (
             <RoleStep onError={fail} />
           ) : step.includes("bank") ? (
