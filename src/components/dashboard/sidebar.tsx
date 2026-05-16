@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { usePathname } from "next/navigation";
-import { Home, Store, PiggyBank, FileText, User } from "lucide-react";
+import { Home, Store, PiggyBank, FileText, LogOut, User } from "lucide-react";
+import { authClient } from "@/server/better-auth/client";
 
 const navItems = [
   { icon: Home, label: "Dashboard", route: "/dashboard" },
@@ -14,6 +16,7 @@ const navItems = [
 
 export function DashboardSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
 
   return (
     <div className="flex h-full w-64 flex-col border-r bg-background">
@@ -43,6 +46,18 @@ export function DashboardSidebar() {
             );
           })}
         </nav>
+      </div>
+      <div className="border-t px-4 py-4">
+        <button
+          onClick={async () => {
+            await authClient.signOut();
+            router.push("/");
+          }}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold text-stone-500 transition-all hover:bg-red-50 hover:text-red-700"
+        >
+          <LogOut className="h-4 w-4" />
+          Logout
+        </button>
       </div>
     </div>
   );

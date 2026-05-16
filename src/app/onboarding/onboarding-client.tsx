@@ -103,7 +103,7 @@ const flowSteps = [
   { id: "phone", label: "Verify", icon: Phone },
   { id: "bvn", label: "Vault", icon: Banknote },
   { id: "register", label: "Account", icon: BadgeCheck },
-
+  { id: "vault-setup", label: "Savings", icon: Banknote },
   { id: "role", label: "Role", icon: BriefcaseBusiness },
   { id: "reveal", label: "Score", icon: CheckCircle2 },
 ];
@@ -218,6 +218,8 @@ export function BorrowerOnboarding({ step }: { step: Step }) {
             />
           ) : step === "register" ? (
             <RegisterStep draftId={draftId} draft={draft.data} onError={fail} />
+          ) : step === "vault-setup" ? (
+            <VaultSetupStep />
           ) : step === "role" ? (
             <RoleStep onError={fail} />
           ) : step.includes("bank") ? (
@@ -653,6 +655,7 @@ function RegisterStep({
   const [email, setEmail] = useState(draft?.email ?? "");
   const [password, setPassword] = useState("");
   const [accepted, setAccepted] = useState(false);
+  const [loading, setLoading] = useState(false);
   const complete = api.general.completeRegistration.useMutation();
 
   useEffect(() => setEmail(draft?.email ?? ""), [draft?.email]);
@@ -664,6 +667,7 @@ function RegisterStep({
       subtitle="Your verified identity details will be attached to this login."
       onSubmit={async (e) => {
         e.preventDefault();
+        setLoading(true);
         try {
           const safeEmail = emailOrDefault(
             email || draft?.email || "",
@@ -687,6 +691,8 @@ function RegisterStep({
           router.push("/onboarding/vault");
         } catch (error) {
           onError(error);
+        } finally {
+          setLoading(false);
         }
       }}
     >
@@ -712,7 +718,7 @@ function RegisterStep({
       </label>
       <PrimaryAction
         label="Create Account"
-        loading={complete.isPending}
+        loading={loading || complete.isPending}
         submit
       />
     </StepShell>
@@ -722,6 +728,7 @@ function RegisterStep({
 function VaultSetupStep() {
   const router = useRouter();
   const [amount, setAmount] = useState(5000);
+  const [loading, setLoading] = useState(false);
   const [frequency, setFrequency] = useState<"daily" | "weekly" | "monthly">(
     "daily",
   );
@@ -744,6 +751,7 @@ function VaultSetupStep() {
       subtitle="Choose how much you want to save automatically. Stronger savings habits can improve your available limit over time."
       onSubmit={(event) => {
         event.preventDefault();
+        setLoading(true);
         const selected = frequencies.find((item) => item.value === frequency);
         localStorage.setItem(
           "creditgo_vault_setup",
@@ -804,7 +812,7 @@ function VaultSetupStep() {
         </div>
       </div>
 
-      <PrimaryAction label="Save Vault Setup" submit />
+      <PrimaryAction label="Save Vault Setup" loading={loading} submit />
     </StepShell>
   );
 }
