@@ -1112,8 +1112,8 @@ function RevealStep({ onError }: { onError: (error: unknown) => void }) {
           <div className="rounded-lg bg-emerald-50 p-4 text-2xl font-black text-emerald-900">
             Safe Limit: ₦{score.safe_limit_ngn.toLocaleString()}
           </div>
-          <Button onClick={() => router.push("/onboarding/boost")}>
-            Continue
+          <Button onClick={() => router.push("/onboarding/vault")}>
+            Continue to Savings
           </Button>
         </div>
       ) : (
