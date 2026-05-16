@@ -1,99 +1,238 @@
 import Link from "next/link";
-import { ArrowRight, Wallet, Target, TrendingUp } from "lucide-react";
+import {
+  ArrowRight,
+  Wallet,
+  Target,
+  TrendingUp,
+  ShieldCheck,
+  Zap,
+  ArrowUpRight,
+} from "lucide-react";
 
 export default function DashboardPage() {
   return (
-    <div className="flex flex-col gap-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Overview</h1>
-        <p className="text-muted-foreground">Welcome back. Here's your platform summary.</p>
+    <div className="flex flex-col gap-10 pb-10">
+      {/* Header Section */}
+      <div className="relative flex flex-col items-start justify-between gap-4 overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-950 to-emerald-900 p-8 text-white shadow-xl md:flex-row md:items-end">
+        <div className="pointer-events-none absolute top-[-50%] right-[-10%] h-[500px] w-[500px] rounded-full bg-emerald-500/20 blur-[100px]"></div>
+        <div className="relative z-10">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-700/50 bg-emerald-800/50 px-3 py-1 text-xs font-bold text-emerald-300">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+            </span>
+            System Healthy
+          </div>
+          <h1 className="mb-2 text-4xl font-black tracking-tight md:text-5xl">
+            Welcome back, Earner.
+          </h1>
+          <p className="max-w-xl text-lg text-emerald-100/80">
+            Your financial leverage is growing. Maintain your streak to unlock
+            higher tiers.
+          </p>
+        </div>
+        <Link
+          href="/dashboard/vault"
+          className="relative z-10 inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-emerald-500 px-6 py-3 text-sm font-bold text-emerald-950 shadow-[0_4px_15px_rgba(16,185,129,0.3)] transition-transform hover:-translate-y-1 hover:bg-emerald-400"
+        >
+          Fund Vault <ArrowUpRight className="h-4 w-4" />
+        </Link>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        {/* Trust Score Card */}
-        <div className="rounded-xl border bg-card text-card-foreground shadow">
-          <div className="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
-            <h3 className="tracking-tight text-sm font-medium">Trust Score</h3>
-          </div>
-          <div className="p-6 pt-0">
-            <div className="flex items-center gap-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-yellow-500">
-                <span className="text-2xl font-bold">72</span>
+      <div className="grid gap-6 md:grid-cols-12">
+        {/* Safe Limit Card (Featured) */}
+        <div className="group overflow-hidden rounded-[2rem] border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white shadow-lg md:col-span-8">
+          <div className="relative flex h-full flex-col justify-between p-8">
+            <div className="absolute top-0 right-0 p-8 opacity-10 transition-opacity group-hover:opacity-20">
+              <ShieldCheck className="h-32 w-32 text-emerald-600" />
+            </div>
+            <div className="relative z-10">
+              <h3 className="mb-4 text-sm font-black tracking-widest text-emerald-600 uppercase">
+                Available Safe Limit
+              </h3>
+              <div className="mb-2 flex items-baseline gap-2">
+                <span className="text-5xl font-black tracking-tighter text-stone-900 md:text-7xl">
+                  ₦650,000
+                </span>
               </div>
-              <div>
-                <div className="text-2xl font-bold text-yellow-500">GOLD</div>
-                <p className="text-xs text-muted-foreground">+3 this month</p>
+              <div className="mt-4 flex items-center gap-2">
+                <div className="h-2 w-full max-w-[200px] overflow-hidden rounded-full bg-emerald-100">
+                  <div className="relative h-full w-[60%] rounded-full bg-emerald-500">
+                    <div className="absolute inset-0 animate-pulse bg-white/20"></div>
+                  </div>
+                </div>
+                <span className="text-xs font-bold text-emerald-700">
+                  60% of Max
+                </span>
               </div>
+            </div>
+            <div className="relative z-10 mt-10">
+              <Link
+                href="/dashboard/marketplace"
+                className="inline-flex items-center gap-2 rounded-full bg-emerald-100/50 px-4 py-2 text-sm font-bold text-emerald-700 transition-all hover:bg-emerald-100 hover:text-emerald-800"
+              >
+                Explore Marketplace <ArrowRight className="h-4 w-4" />
+              </Link>
             </div>
           </div>
         </div>
 
-        {/* Safe Limit Card */}
-        <div className="rounded-xl border bg-card text-card-foreground shadow flex flex-col justify-between">
-          <div className="p-6">
-            <h3 className="tracking-tight text-sm font-medium">Safe Limit</h3>
-            <div className="mt-2 text-4xl font-bold">₦650,000</div>
-            <p className="text-xs text-muted-foreground mt-1">Available to borrow</p>
+        {/* Trust Score Card */}
+        <div className="group relative flex flex-col items-center justify-center overflow-hidden rounded-[2rem] border border-stone-200 bg-white p-8 text-center shadow-lg md:col-span-4">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-yellow-50 via-white to-white opacity-0 transition-opacity duration-500 group-hover:opacity-100"></div>
+          <h3 className="relative z-10 mb-6 text-sm font-black tracking-widest text-stone-500 uppercase">
+            Trust Score
+          </h3>
+
+          <div className="relative z-10 mb-6 flex h-32 w-32 items-center justify-center rounded-full border-[6px] border-yellow-400 bg-yellow-50 shadow-inner transition-transform duration-300 group-hover:scale-105">
+            <span className="text-5xl font-black text-yellow-600">72</span>
+            <div className="absolute -top-2 -right-2 rounded-full border border-stone-100 bg-white p-1 shadow-md">
+              <div className="flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-black text-emerald-700">
+                <ArrowUpRight className="h-3 w-3" /> 3
+              </div>
+            </div>
           </div>
-          <div className="p-6 pt-0">
-            <Link href="/dashboard/marketplace" className="text-sm text-primary font-medium flex items-center gap-1 hover:underline">
-              View Marketplace <ArrowRight className="h-4 w-4" />
-            </Link>
+
+          <div className="relative z-10">
+            <div className="mb-1 flex items-center justify-center gap-2 text-xl font-black text-stone-900">
+              GOLD TIER <span className="text-yellow-500">✦</span>
+            </div>
+            <p className="text-sm font-medium text-stone-500">
+              Top 15% of Earners
+            </p>
           </div>
         </div>
       </div>
 
       {/* Savings Vault Summary */}
-      <div className="rounded-xl border bg-card text-card-foreground shadow">
-        <div className="p-6 flex flex-row items-center justify-between pb-2">
-          <h3 className="tracking-tight text-sm font-medium">Savings Vault</h3>
-          <Link href="/dashboard/vault" className="text-sm text-primary font-medium flex items-center gap-1 hover:underline">
+      <div className="overflow-hidden rounded-[2rem] border border-stone-200 bg-white shadow-lg">
+        <div className="flex flex-row items-center justify-between border-b border-stone-100 bg-stone-50/50 p-6 px-8">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+              <Zap className="h-5 w-5" />
+            </div>
+            <h3 className="text-lg font-bold text-stone-900">Savings Vault</h3>
+          </div>
+          <Link
+            href="/dashboard/vault"
+            className="flex items-center gap-1 rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-bold text-stone-600 shadow-sm transition-all hover:text-stone-900 hover:shadow"
+          >
             Manage <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
-        <div className="p-6 pt-0 grid gap-4 md:grid-cols-3">
-          <div>
-            <p className="text-sm text-muted-foreground">Vault Balance</p>
-            <p className="text-2xl font-bold">₦245,000</p>
+        <div className="grid gap-8 divide-y divide-stone-100 p-8 md:grid-cols-3 md:divide-x md:divide-y-0">
+          <div className="md:pr-8">
+            <p className="mb-2 text-sm font-bold tracking-wider text-stone-500 uppercase">
+              Vault Balance
+            </p>
+            <p className="text-4xl font-black text-stone-900">₦245,000</p>
+            <div className="mt-2 inline-block rounded-md bg-emerald-50 px-2 py-1 text-sm font-medium text-emerald-600">
+              +₦15,000 this week
+            </div>
           </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Streak</p>
-            <p className="text-xl font-semibold">12 days</p>
+          <div className="pt-6 md:px-8 md:pt-0">
+            <p className="mb-2 text-sm font-bold tracking-wider text-stone-500 uppercase">
+              Active Streak
+            </p>
+            <div className="flex items-end gap-2">
+              <p className="text-4xl font-black text-orange-500">12</p>
+              <p className="pb-1 text-lg font-bold text-stone-600">days</p>
+            </div>
+            <p className="mt-2 text-sm font-medium text-stone-500">
+              18 days to next rate drop
+            </p>
           </div>
-          <div>
-            <p className="text-sm text-muted-foreground">Auto-sweep</p>
-            <p className="text-lg font-medium">₦5,000/day</p>
-            <p className="text-xs text-muted-foreground">Next: Today 6pm</p>
+          <div className="pt-6 md:pt-0 md:pl-8">
+            <p className="mb-2 text-sm font-bold tracking-wider text-stone-500 uppercase">
+              Auto-sweep
+            </p>
+            <p className="text-2xl font-black text-stone-900">
+              ₦5,000
+              <span className="text-lg font-medium text-stone-400">/day</span>
+            </p>
+            <div className="mt-3 flex items-center gap-2">
+              <div className="h-2 w-2 animate-pulse rounded-full bg-emerald-500"></div>
+              <p className="text-sm font-bold text-stone-600">
+                Next: Today, 6:00 PM
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Quick Action Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Link href="/dashboard/marketplace" className="group rounded-xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md hover:border-emerald-200 block">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 mb-4 group-hover:bg-emerald-200 transition-colors">
-            <Wallet className="h-6 w-6 text-emerald-600" />
-          </div>
-          <h4 className="font-bold text-stone-900 group-hover:text-emerald-700 transition-colors">Get a Loan</h4>
-          <p className="text-sm text-stone-600 mt-2 mb-4 leading-relaxed">Browse what you qualify for based on your score.</p>
-          <span className="text-sm text-emerald-600 font-bold flex items-center gap-1 group-hover:gap-2 transition-all">Browse <ArrowRight className="h-4 w-4" /></span>
-        </Link>
-        <Link href="/dashboard/vault" className="group rounded-xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md hover:border-emerald-200 block">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 mb-4 group-hover:bg-emerald-200 transition-colors">
-            <Target className="h-6 w-6 text-emerald-600" />
-          </div>
-          <h4 className="font-bold text-stone-900 group-hover:text-emerald-700 transition-colors">Save Faster</h4>
-          <p className="text-sm text-stone-600 mt-2 mb-4 leading-relaxed">Increase your daily auto-sweep to build your limit.</p>
-          <span className="text-sm text-emerald-600 font-bold flex items-center gap-1 group-hover:gap-2 transition-all">Adjust <ArrowRight className="h-4 w-4" /></span>
-        </Link>
-        <Link href="/dashboard/profile" className="group rounded-xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md hover:border-emerald-200 block">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 mb-4 group-hover:bg-emerald-200 transition-colors">
-            <TrendingUp className="h-6 w-6 text-emerald-600" />
-          </div>
-          <h4 className="font-bold text-stone-900 group-hover:text-emerald-700 transition-colors">Improve Score</h4>
-          <p className="text-sm text-stone-600 mt-2 mb-4 leading-relaxed">Take Credit School lessons for +5 points.</p>
-          <span className="text-sm text-emerald-600 font-bold flex items-center gap-1 group-hover:gap-2 transition-all">Start <ArrowRight className="h-4 w-4" /></span>
-        </Link>
+      <div>
+        <h3 className="mb-6 px-2 text-xl font-black text-stone-900">
+          Quick Actions
+        </h3>
+        <div className="grid gap-6 md:grid-cols-3">
+          <Link
+            href="/dashboard/marketplace"
+            className="group relative block overflow-hidden rounded-[1.5rem] border border-stone-200 bg-white p-8 shadow-sm transition-all duration-300 hover:-translate-y-2 hover:border-emerald-200 hover:shadow-xl"
+          >
+            <div className="absolute top-0 right-0 transform p-6 opacity-0 transition-opacity duration-500 group-hover:scale-150 group-hover:opacity-10">
+              <Wallet className="h-32 w-32 text-emerald-600" />
+            </div>
+            <div className="relative z-10 mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-stone-100 shadow-sm transition-colors group-hover:bg-emerald-100 group-hover:text-emerald-700">
+              <Wallet className="h-7 w-7 text-stone-600 transition-colors group-hover:text-emerald-600" />
+            </div>
+            <h4 className="mb-2 text-xl font-black text-stone-900 transition-colors group-hover:text-emerald-700">
+              Get a Loan
+            </h4>
+            <p className="mb-8 leading-relaxed text-stone-500">
+              Browse pre-approved assets and cash loans based on your standing.
+            </p>
+            <span className="inline-flex items-center gap-2 rounded-full bg-stone-50 px-4 py-2 text-sm font-bold text-stone-900 transition-all group-hover:bg-emerald-50 group-hover:text-emerald-600">
+              Browse Offers{" "}
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </span>
+          </Link>
+
+          <Link
+            href="/dashboard/vault"
+            className="group relative block overflow-hidden rounded-[1.5rem] border border-stone-200 bg-white p-8 shadow-sm transition-all duration-300 hover:-translate-y-2 hover:border-blue-200 hover:shadow-xl"
+          >
+            <div className="absolute top-0 right-0 transform p-6 opacity-0 transition-opacity duration-500 group-hover:scale-150 group-hover:opacity-10">
+              <Target className="h-32 w-32 text-blue-600" />
+            </div>
+            <div className="relative z-10 mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-stone-100 shadow-sm transition-colors group-hover:bg-blue-100 group-hover:text-blue-700">
+              <Target className="h-7 w-7 text-stone-600 transition-colors group-hover:text-blue-600" />
+            </div>
+            <h4 className="mb-2 text-xl font-black text-stone-900 transition-colors group-hover:text-blue-700">
+              Accelerate Savings
+            </h4>
+            <p className="mb-8 leading-relaxed text-stone-500">
+              Boost your auto-sweep to unlock higher limits and lower interest
+              rates.
+            </p>
+            <span className="inline-flex items-center gap-2 rounded-full bg-stone-50 px-4 py-2 text-sm font-bold text-stone-900 transition-all group-hover:bg-blue-50 group-hover:text-blue-600">
+              Adjust Vault{" "}
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </span>
+          </Link>
+
+          <Link
+            href="/dashboard/profile"
+            className="group relative block overflow-hidden rounded-[1.5rem] border border-stone-200 bg-white p-8 shadow-sm transition-all duration-300 hover:-translate-y-2 hover:border-yellow-200 hover:shadow-xl"
+          >
+            <div className="absolute top-0 right-0 transform p-6 opacity-0 transition-opacity duration-500 group-hover:scale-150 group-hover:opacity-10">
+              <TrendingUp className="h-32 w-32 text-yellow-600" />
+            </div>
+            <div className="relative z-10 mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-stone-100 shadow-sm transition-colors group-hover:bg-yellow-100 group-hover:text-yellow-700">
+              <TrendingUp className="h-7 w-7 text-stone-600 transition-colors group-hover:text-yellow-600" />
+            </div>
+            <h4 className="mb-2 text-xl font-black text-stone-900 transition-colors group-hover:text-yellow-700">
+              Boost Trust Score
+            </h4>
+            <p className="mb-8 leading-relaxed text-stone-500">
+              Complete Credit School modules to instantly gain +5 trust points.
+            </p>
+            <span className="inline-flex items-center gap-2 rounded-full bg-stone-50 px-4 py-2 text-sm font-bold text-stone-900 transition-all group-hover:bg-yellow-50 group-hover:text-yellow-600">
+              Start Learning{" "}
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </span>
+          </Link>
+        </div>
       </div>
     </div>
   );
