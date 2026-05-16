@@ -43,11 +43,29 @@ BASE_TRUST_SCORES = {
     Persona.former_worker: 35,
 }
 
+CLIP_BOUNDS = {
+    "bank_statement_months": (0, 60),
+    "debt_to_income": (0, 5.0),
+    "previous_loans_count": (0, 30),
+    "credit_utilization": (0, 1.5),
+    "delinquent_accounts": (0, 20),
+    "active_accounts": (0, 50),
+    "loan_amount_to_income": (0, 24.0),
+    "tenor_days": (1, 3650),
+}
+
 
 def state_bucket(value: Any) -> int:
+    """
+    Buckets states by economic volume to help the model assess baseline regional risk:
+    - 0: Major economic hubs with higher average liquidity and distinct credit behaviors.
+    - 1: Other regions representing the standard economic baseline.
+    - 2: Missing or invalid state data, kept distinct to flag uncertainty to the model.
+    """
     if not isinstance(value, str) or not value:
         return 2
-    high_activity = {"Lagos", "FCT", "Rivers", "Oyo", "Ogun", "Kano"}
+    value = value.strip().title()
+    high_activity = {"Lagos", "Fct", "Rivers", "Oyo", "Ogun", "Kano"}
     return 0 if value in high_activity else 1
 
 
@@ -99,15 +117,15 @@ def features_from_training_frame(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Ser
         [6, 4, 0],
         default=2,
     )
-    features["bank_statement_months"] = df["payment_history_months"].fillna(6).clip(0, 60)
+    features["bank_statement_months"] = df["payment_history_months"].fillna(6).clip(*CLIP_BOUNDS["bank_statement_months"])
     features["income_log"] = np.log1p(monthly_income)
-    features["debt_to_income"] = (monthly_debt / monthly_income).clip(0, 5)
-    features["previous_loans_count"] = df["previous_loans_count"].fillna(0).clip(0, 30)
-    features["credit_utilization"] = df["credit_utilization"].fillna(0.5).clip(0, 1.5)
-    features["delinquent_accounts"] = df["delinquent_accounts"].fillna(0).clip(0, 20)
-    features["active_accounts"] = df["active_accounts"].fillna(0).clip(0, 50)
-    features["loan_amount_to_income"] = (df["principal_ngn"].fillna(0) / monthly_income).clip(0, 24)
-    features["tenor_days"] = df["tenor_days"].fillna(30).clip(1, 3650)
+    features["debt_to_income"] = (monthly_debt / monthly_income).clip(*CLIP_BOUNDS["debt_to_income"])
+    features["previous_loans_count"] = df["previous_loans_count"].fillna(0).clip(*CLIP_BOUNDS["previous_loans_count"])
+    features["credit_utilization"] = df["credit_utilization"].fillna(0.5).clip(*CLIP_BOUNDS["credit_utilization"])
+    features["delinquent_accounts"] = df["delinquent_accounts"].fillna(0).clip(*CLIP_BOUNDS["delinquent_accounts"])
+    features["active_accounts"] = df["active_accounts"].fillna(0).clip(*CLIP_BOUNDS["active_accounts"])
+    features["loan_amount_to_income"] = (df["principal_ngn"].fillna(0) / monthly_income).clip(*CLIP_BOUNDS["loan_amount_to_income"])
+    features["tenor_days"] = df["tenor_days"].fillna(30).clip(*CLIP_BOUNDS["tenor_days"])
     features["state_risk_bucket"] = df["state"].map(state_bucket)
 
     default_90d = df["default_90d"].astype("boolean").fillna(False).astype(bool)
@@ -120,22 +138,27 @@ def features_from_payload(payload: dict[str, Any]) -> pd.DataFrame:
     monthly_income = max(float(payload.get("monthly_income_ngn") or 0), 1.0)
     monthly_debt = max(float(payload.get("monthly_debt_ngn") or 0), 0.0)
     persona = persona_from_payload(payload.get("persona", Persona.freelancer.value))
-    row = {column: 0 for column in FEATURE_COLUMNS}
+    row = {column: 0.0 for column in FEATURE_COLUMNS}
     row["base_trust_score"] = float(
         payload.get("base_trust_score") or BASE_TRUST_SCORES[persona]
     )
-    row[f"persona_{persona.value}"] = 1
-    row["identity_verified"] = int(bool(payload.get("identity_verified", False)))
-    row["employment_verified"] = int(bool(payload.get("employment_verified", False)))
-    row["job_tenure_years"] = float(payload.get("job_tenure_years") or 0)
-    row["bank_statement_months"] = float(payload.get("bank_statement_months") or 0)
+    row[f"persona_{persona.value}"] = 1.0
+    row["identity_verified"] = float(int(bool(payload.get("identity_verified", False))))
+    row["employment_verified"] = float(int(bool(payload.get("employment_verified", False))))
+    row["job_tenure_years"] = float(payload.get("job_tenure_years") or 0.0)
+    
+    row["bank_statement_months"] = np.clip(float(payload.get("bank_statement_months") or 0.0), *CLIP_BOUNDS["bank_statement_months"])
     row["income_log"] = np.log1p(monthly_income)
-    row["debt_to_income"] = min(monthly_debt / monthly_income, 5.0)
-    row["previous_loans_count"] = float(payload.get("previous_loans_count") or 0)
-    row["credit_utilization"] = float(payload.get("credit_utilization") or 0.35)
-    row["delinquent_accounts"] = float(payload.get("delinquent_accounts") or 0)
-    row["active_accounts"] = float(payload.get("active_accounts") or 0)
-    row["loan_amount_to_income"] = float(payload.get("requested_amount_ngn") or 0) / monthly_income
-    row["tenor_days"] = float(payload.get("tenor_days") or 30)
-    row["state_risk_bucket"] = state_bucket(payload.get("state"))
+    row["debt_to_income"] = np.clip(monthly_debt / monthly_income, *CLIP_BOUNDS["debt_to_income"])
+    row["previous_loans_count"] = np.clip(float(payload.get("previous_loans_count") or 0.0), *CLIP_BOUNDS["previous_loans_count"])
+    
+    cu_val = payload.get("credit_utilization")
+    row["credit_utilization"] = np.clip(float(0.35 if cu_val is None else cu_val), *CLIP_BOUNDS["credit_utilization"])
+    
+    row["delinquent_accounts"] = np.clip(float(payload.get("delinquent_accounts") or 0.0), *CLIP_BOUNDS["delinquent_accounts"])
+    row["active_accounts"] = np.clip(float(payload.get("active_accounts") or 0.0), *CLIP_BOUNDS["active_accounts"])
+    row["loan_amount_to_income"] = np.clip(float(payload.get("requested_amount_ngn") or 0.0) / monthly_income, *CLIP_BOUNDS["loan_amount_to_income"])
+    row["tenor_days"] = np.clip(float(payload.get("tenor_days") or 30.0), *CLIP_BOUNDS["tenor_days"])
+    
+    row["state_risk_bucket"] = float(state_bucket(payload.get("state")))
     return pd.DataFrame([row], columns=FEATURE_COLUMNS)

@@ -26,7 +26,6 @@ def train_model(sample_rows: int = 200_000, random_state: int = 42) -> None:
         subsample=0.85,
         colsample_bytree=0.85,
         eval_metric="auc",
-        missing=float("nan"),
         random_state=random_state,
         n_jobs=-1,
     )
