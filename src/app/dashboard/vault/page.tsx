@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { Settings, Share, ArrowRight, Pause, Play } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function VaultPage() {
   const [sweepAmount, setSweepAmount] = useState(5000);
+  const [frequencyLabel, setFrequencyLabel] = useState("Daily");
+  const [nextSweep, setNextSweep] = useState("Today at 6:00 PM");
   const [paused, setPaused] = useState(false);
   const [showAllActivity, setShowAllActivity] = useState(false);
   const activity = [
@@ -54,6 +56,30 @@ export default function VaultPage() {
     },
   ];
   const visibleActivity = showAllActivity ? activity : activity.slice(0, 5);
+
+  useEffect(() => {
+    const savedVault = localStorage.getItem("creditgo_vault_setup");
+    if (!savedVault) return;
+    const parsed = JSON.parse(savedVault) as {
+      amount?: number;
+      frequencyLabel?: string;
+      nextSweep?: string;
+    };
+    if (parsed.amount) setSweepAmount(parsed.amount);
+    if (parsed.frequencyLabel) setFrequencyLabel(parsed.frequencyLabel);
+    if (parsed.nextSweep) setNextSweep(parsed.nextSweep);
+  }, []);
+
+  const saveVault = (amount: number) => {
+    localStorage.setItem(
+      "creditgo_vault_setup",
+      JSON.stringify({
+        amount,
+        frequencyLabel,
+        nextSweep,
+      }),
+    );
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -109,7 +135,7 @@ export default function VaultPage() {
           <h3 className="border-b pb-2 text-lg font-semibold">Next Sweep</h3>
           <div>
             <p className="text-muted-foreground text-sm">
-              {paused ? "Paused" : "Today at 6:00 PM"}
+              {paused ? "Paused" : nextSweep}
             </p>
             <p className="mt-1 text-2xl font-bold">
               ₦{sweepAmount.toLocaleString()}
@@ -120,6 +146,7 @@ export default function VaultPage() {
               onClick={() => {
                 const nextAmount = sweepAmount === 5000 ? 10000 : 5000;
                 setSweepAmount(nextAmount);
+                saveVault(nextAmount);
                 toast.success(
                   `Next sweep approved at ₦${nextAmount.toLocaleString()}.`,
                 );
@@ -135,7 +162,7 @@ export default function VaultPage() {
                   toast.success(
                     next
                       ? "Auto-sweep paused. No debit will run today."
-                      : "Auto-sweep resumed for today at 6:00 PM.",
+                      : `Auto-sweep resumed for ${nextSweep}.`,
                   );
                   return next;
                 });

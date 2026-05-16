@@ -59,6 +59,7 @@ type Step =
   | "phone"
   | "bvn"
   | "register"
+  | "vault-setup"
   | "role"
   | "freelancer-bank"
   | "freelancer-income"
@@ -82,7 +83,8 @@ const borrowerNext: Record<string, string> = {
   identity: "/onboarding/phone",
   phone: "/onboarding/bvn",
   bvn: "/onboarding/register",
-  register: "/onboarding/role",
+  register: "/onboarding/vault",
+  "vault-setup": "/onboarding/role",
   role: "/onboarding/role",
   "freelancer-bank": "/onboarding/freelancer/income",
   "freelancer-income": "/onboarding/freelancer/linkedin",
@@ -101,6 +103,7 @@ const flowSteps = [
   { id: "phone", label: "Phone", icon: Phone },
   { id: "bvn", label: "Vault", icon: Banknote },
   { id: "register", label: "Account", icon: BadgeCheck },
+  { id: "vault-setup", label: "Savings", icon: Banknote },
   { id: "role", label: "Role", icon: BriefcaseBusiness },
   { id: "reveal", label: "Score", icon: CheckCircle2 },
 ];
@@ -215,6 +218,8 @@ export function BorrowerOnboarding({ step }: { step: Step }) {
             />
           ) : step === "register" ? (
             <RegisterStep draftId={draftId} draft={draft.data} onError={fail} />
+          ) : step === "vault-setup" ? (
+            <VaultSetupStep />
           ) : step === "role" ? (
             <RoleStep onError={fail} />
           ) : step.includes("bank") ? (
@@ -570,7 +575,7 @@ function RegisterStep({
               password: safePassword,
             });
           await complete.mutateAsync({ draftId });
-          router.push("/onboarding/role");
+          router.push("/onboarding/vault");
         } catch (error) {
           onError(error);
         }
@@ -601,6 +606,96 @@ function RegisterStep({
         loading={complete.isPending}
         submit
       />
+    </StepShell>
+  );
+}
+
+function VaultSetupStep() {
+  const router = useRouter();
+  const [amount, setAmount] = useState(5000);
+  const [frequency, setFrequency] = useState<"daily" | "weekly" | "monthly">(
+    "daily",
+  );
+  const options = [
+    { value: 3000, label: "₦3,000" },
+    { value: 5000, label: "₦5,000" },
+    { value: 10000, label: "₦10,000" },
+    { value: 20000, label: "₦20,000" },
+  ];
+  const frequencies = [
+    { value: "daily", label: "Daily", next: "Today at 6:00 PM" },
+    { value: "weekly", label: "Weekly", next: "Friday at 6:00 PM" },
+    { value: "monthly", label: "Monthly", next: "Month-end at 6:00 PM" },
+  ] as const;
+
+  return (
+    <StepShell
+      icon={<Banknote />}
+      title="Set up your savings vault"
+      subtitle="Choose how much you want to save automatically. Stronger savings habits can improve your available limit over time."
+      onSubmit={(event) => {
+        event.preventDefault();
+        const selected = frequencies.find((item) => item.value === frequency);
+        localStorage.setItem(
+          "creditgo_vault_setup",
+          JSON.stringify({
+            amount,
+            frequency,
+            frequencyLabel: selected?.label ?? "Daily",
+            nextSweep: selected?.next ?? "Today at 6:00 PM",
+          }),
+        );
+        router.push("/onboarding/role");
+      }}
+    >
+      <div>
+        <div className="mb-3 text-sm font-black text-stone-700">
+          Auto-save amount
+        </div>
+        <div className="grid gap-3 sm:grid-cols-4">
+          {options.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => setAmount(option.value)}
+              className={`rounded-lg border px-4 py-3 text-left font-black transition ${
+                amount === option.value
+                  ? "border-emerald-500 bg-emerald-50 text-emerald-800 ring-1 ring-emerald-500"
+                  : "border-stone-200 text-stone-800 hover:border-emerald-200"
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <div className="mb-3 text-sm font-black text-stone-700">
+          Savings frequency
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          {frequencies.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => setFrequency(option.value)}
+              className={`rounded-lg border px-4 py-3 text-left transition ${
+                frequency === option.value
+                  ? "border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500"
+                  : "border-stone-200 hover:border-emerald-200"
+              }`}
+            >
+              <div className="font-black text-stone-900">{option.label}</div>
+              <div className="mt-1 text-xs font-semibold text-stone-500">
+                {option.next}
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <PrimaryAction label="Save Vault Setup" submit />
     </StepShell>
   );
 }
@@ -671,7 +766,6 @@ function BankStep({
   onError: (error: unknown) => void;
 }) {
   const router = useRouter();
-  const [code, setCode] = useState("");
   const [linked, setLinked] = useState<{
     monthCount: number;
     averageMonthlyIncome: number;
@@ -796,41 +890,6 @@ function BankStep({
           {isFreelancer ? "Skip to income proof" : "Skip for now"}
         </Button>
       </div>
-
-      {process.env.NODE_ENV === "development" ? (
-        <details className="rounded-lg border border-stone-200 bg-stone-50 p-4">
-          <summary className="cursor-pointer text-sm font-bold text-stone-700">
-            Developer fallback
-          </summary>
-          <form
-            onSubmit={async (e) => {
-              e.preventDefault();
-              try {
-                const result = await mutation.mutateAsync({
-                  code: code.trim() || demoDefaults.monoCode,
-                  nextStep,
-                });
-                setLinked(result);
-                router.push(next);
-              } catch (error) {
-                onError(error);
-              }
-            }}
-            className="mt-4 space-y-4"
-          >
-            <Field
-              label="Mono authorization code"
-              value={code}
-              onChange={setCode}
-            />
-            <PrimaryAction
-              label="Submit Test Code"
-              loading={mutation.isPending}
-              submit
-            />
-          </form>
-        </details>
-      ) : null}
     </StepShell>
   );
 }
@@ -857,7 +916,7 @@ function GigIncomeStep({ onError }: { onError: (error: unknown) => void }) {
     <StepShell
       icon={<BadgeCheck />}
       title="Verify your income sources"
-      subtitle="Cr3dentials creates a secure browser session and posts proof results by webhook."
+      subtitle="Connect the platforms where you earn so we can strengthen your income profile."
       onSubmit={async (e) => {
         e.preventDefault();
         try {
@@ -886,11 +945,7 @@ function GigIncomeStep({ onError }: { onError: (error: unknown) => void }) {
           ))}
         </select>
       </label>
-      <PrimaryAction
-        label="Create Verification Session"
-        loading={mutation.isPending}
-        submit
-      />
+      <PrimaryAction label="Continue" loading={mutation.isPending} submit />
     </StepShell>
   );
 }
@@ -910,7 +965,7 @@ function PayslipStep({
     <StepShell
       icon={<Upload />}
       title="Upload your latest payslip"
-      subtitle="Paste OCR text or extracted PDF text. The server parser validates name, salary, date, and government deduction patterns where applicable."
+      subtitle="Add the salary details from your latest payslip so we can confirm your income."
       onSubmit={async (e) => {
         e.preventDefault();
         try {
@@ -1018,11 +1073,22 @@ function RevealStep({ onError }: { onError: (error: unknown) => void }) {
   const router = useRouter();
   const mutation = api.ml.scoreMe.useMutation();
   const score = mutation.data;
+  useEffect(() => {
+    if (!score) return;
+    localStorage.setItem(
+      "creditgo_score_summary",
+      JSON.stringify({
+        trustScore: score.trust_score,
+        safeLimitNgn: score.safe_limit_ngn,
+        tier: score.tier,
+      }),
+    );
+  }, [score]);
   return (
     <StepShell
       icon={<CheckCircle2 />}
       title={score ? "Congratulations" : "Calculate your Trust Score"}
-      subtitle="The ML service is tried first; if it is unavailable, the server applies the rule-based fallback."
+      subtitle="We'll review your verified profile and show the credit limit you can safely manage."
       onSubmit={
         score
           ? undefined
@@ -1161,7 +1227,7 @@ export function LenderOnboarding({ step }: { step: LenderStep }) {
             <StepShell
               icon={<CheckCircle2 />}
               title="Partner account ready"
-              subtitle="Your dashboard and API access are ready once your saved API key is configured in your systems."
+              subtitle="Your partner dashboard is ready. You can now review qualified borrowers and manage funding preferences."
             >
               <Button onClick={() => router.push("/")}>Return Home</Button>
             </StepShell>
@@ -1235,7 +1301,7 @@ function LenderKyc({
     <StepShell
       icon={<ShieldCheck />}
       title="Verify the business director"
-      subtitle="Director NIN is checked with Mono. BVN is stored for Squad validation/account setup."
+      subtitle="Confirm the director's identity so the partner account can be approved."
       onSubmit={async (e) => {
         e.preventDefault();
         try {
@@ -1388,7 +1454,7 @@ function LenderSettlement({
     <StepShell
       icon={<Banknote />}
       title="Where should we send payouts?"
-      subtitle="Squad resolves the account name; mismatches require explicit override."
+      subtitle="Add the settlement account where approved repayments and disbursements should land."
     >
       <form
         onSubmit={async (e) => {
@@ -1450,9 +1516,9 @@ function LenderSettlement({
         />
       </form>
       {apiKey ? (
-        <pre className="overflow-auto rounded-md bg-stone-950 p-4 text-xs text-white">
-          {apiKey}
-        </pre>
+        <div className="rounded-lg border border-emerald-100 bg-emerald-50 p-4 text-sm font-bold text-emerald-900">
+          Partner setup complete. Your secure access details have been created.
+        </div>
       ) : null}
     </StepShell>
   );

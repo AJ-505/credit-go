@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   ArrowRight,
@@ -8,8 +10,49 @@ import {
   Zap,
   ArrowUpRight,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+
+type VaultSetup = {
+  amount: number;
+  frequencyLabel: string;
+  nextSweep: string;
+};
+
+type ScoreSummary = {
+  trustScore: number;
+  safeLimitNgn: number;
+  tier: string;
+};
 
 export default function DashboardPage() {
+  const [vault, setVault] = useState<VaultSetup>({
+    amount: 5000,
+    frequencyLabel: "Daily",
+    nextSweep: "Today at 6:00 PM",
+  });
+  const [score, setScore] = useState<ScoreSummary>({
+    trustScore: 71,
+    safeLimitNgn: 1077300,
+    tier: "GOLD",
+  });
+
+  useEffect(() => {
+    const savedVault = localStorage.getItem("creditgo_vault_setup");
+    if (savedVault) {
+      setVault(JSON.parse(savedVault) as VaultSetup);
+    }
+    const savedScore = localStorage.getItem("creditgo_score_summary");
+    if (savedScore) {
+      const parsed = JSON.parse(savedScore) as ScoreSummary;
+      setScore({ ...parsed, tier: parsed.tier.toUpperCase() });
+    }
+  }, []);
+
+  const safeLimitProgress = Math.min(
+    100,
+    Math.max(10, Math.round((score.safeLimitNgn / 1800000) * 100)),
+  );
+
   return (
     <div className="flex flex-col gap-10 pb-10">
       {/* Header Section */}
@@ -21,7 +64,7 @@ export default function DashboardPage() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
             </span>
-            System Healthy
+            Profile Active
           </div>
           <h1 className="mb-2 text-4xl font-black tracking-tight md:text-5xl">
             Welcome back, Earner.
@@ -52,17 +95,20 @@ export default function DashboardPage() {
               </h3>
               <div className="mb-2 flex items-baseline gap-2">
                 <span className="text-5xl font-black tracking-tighter text-stone-900 md:text-7xl">
-                  ₦650,000
+                  ₦{Math.round(score.safeLimitNgn).toLocaleString()}
                 </span>
               </div>
               <div className="mt-4 flex items-center gap-2">
                 <div className="h-2 w-full max-w-[200px] overflow-hidden rounded-full bg-emerald-100">
-                  <div className="relative h-full w-[60%] rounded-full bg-emerald-500">
+                  <div
+                    className="relative h-full rounded-full bg-emerald-500"
+                    style={{ width: `${safeLimitProgress}%` }}
+                  >
                     <div className="absolute inset-0 animate-pulse bg-white/20"></div>
                   </div>
                 </div>
                 <span className="text-xs font-bold text-emerald-700">
-                  60% of Max
+                  {safeLimitProgress}% of Max
                 </span>
               </div>
             </div>
@@ -85,7 +131,9 @@ export default function DashboardPage() {
           </h3>
 
           <div className="relative z-10 mb-6 flex h-32 w-32 items-center justify-center rounded-full border-[6px] border-yellow-400 bg-yellow-50 shadow-inner transition-transform duration-300 group-hover:scale-105">
-            <span className="text-5xl font-black text-yellow-600">72</span>
+            <span className="text-5xl font-black text-yellow-600">
+              {score.trustScore}
+            </span>
             <div className="absolute -top-2 -right-2 rounded-full border border-stone-100 bg-white p-1 shadow-md">
               <div className="flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-[10px] font-black text-emerald-700">
                 <ArrowUpRight className="h-3 w-3" /> 3
@@ -95,7 +143,7 @@ export default function DashboardPage() {
 
           <div className="relative z-10">
             <div className="mb-1 flex items-center justify-center gap-2 text-xl font-black text-stone-900">
-              GOLD TIER <span className="text-yellow-500">✦</span>
+              {score.tier} TIER <span className="text-yellow-500">✦</span>
             </div>
             <p className="text-sm font-medium text-stone-500">
               Top 15% of Earners
@@ -147,13 +195,15 @@ export default function DashboardPage() {
               Auto-sweep
             </p>
             <p className="text-2xl font-black text-stone-900">
-              ₦5,000
-              <span className="text-lg font-medium text-stone-400">/day</span>
+              ₦{vault.amount.toLocaleString()}
+              <span className="text-lg font-medium text-stone-400">
+                /{vault.frequencyLabel.toLowerCase()}
+              </span>
             </p>
             <div className="mt-3 flex items-center gap-2">
               <div className="h-2 w-2 animate-pulse rounded-full bg-emerald-500"></div>
               <p className="text-sm font-bold text-stone-600">
-                Next: Today, 6:00 PM
+                Next: {vault.nextSweep}
               </p>
             </div>
           </div>

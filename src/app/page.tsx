@@ -395,7 +395,7 @@ export default function Landing() {
                       {
                         num: "01",
                         title: "Connect",
-                        desc: "Link banks securely via API. We read signals, not passwords.",
+                        desc: "Link your bank securely. We read signals, not passwords.",
                       },
                       {
                         num: "02",
@@ -513,11 +513,11 @@ export default function Landing() {
                       size="unstyled"
                       className="inline-flex items-center justify-center gap-2 rounded-full bg-blue-800 px-8 py-4 text-lg font-bold text-white shadow-[0_8px_30px_rgba(30,64,175,0.4)] transition-all hover:-translate-y-1 hover:bg-blue-700"
                     >
-                      View API Documentation
+                      View Partner Guide
                     </Button>
                   </div>
 
-                  {/* B2B Dashboard Mockup */}
+                  {/* B2B Dashboard Preview */}
                   <div className="flex h-[500px] flex-col overflow-hidden rounded-3xl border border-blue-950/50 bg-black/60 shadow-[0_0_50px_rgba(30,64,175,0.15)] backdrop-blur-md">
                     <div className="flex h-14 items-center gap-4 border-b border-blue-950/50 bg-black/80 px-6">
                       <div className="h-3 w-3 rounded-full bg-blue-700/50 shadow-[0_0_8px_rgba(37,99,235,0.6)]"></div>
@@ -590,8 +590,8 @@ export default function Landing() {
                       </h3>
                       <p className="leading-relaxed text-stone-600">
                         We track how your borrowers save before they pay you. If
-                        a user's daily savings streak drops, our API fires an
-                        early warning webhook to your system.
+                        a borrower's daily savings streak drops, your team gets
+                        an early warning before repayment risk rises.
                       </p>
                     </div>
                     <div className="rounded-[2rem] border border-stone-200 bg-white p-10 transition-shadow hover:shadow-xl">
@@ -634,8 +634,8 @@ export default function Landing() {
                     Ready to scale your loan book safely?
                   </h2>
                   <p className="mb-12 text-xl text-blue-100/60">
-                    Integrate our API in minutes and start receiving pre-vetted,
-                    high-intent applications today.
+                    Join the partner network and start receiving pre-vetted,
+                    high-intent applications.
                   </p>
                   <div className="flex flex-col justify-center gap-4 sm:flex-row">
                     <Button
