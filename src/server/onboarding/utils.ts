@@ -36,7 +36,9 @@ export function requireEnv(value: string | undefined, name: string) {
 }
 
 export function appBaseUrl() {
-  return env.APP_BASE_URL ?? "http://localhost:3000";
+  if (env.APP_BASE_URL) return env.APP_BASE_URL;
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  return "http://localhost:3000";
 }
 
 export function makeId(prefix: string) {

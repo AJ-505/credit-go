@@ -15,11 +15,16 @@ from ml_service.paths import MODEL_PATH
 
 
 def load_model() -> Any:
-    return joblib.load(MODEL_PATH)
+    try:
+        return joblib.load(MODEL_PATH)
+    except FileNotFoundError as e:
+        raise FileNotFoundError(
+            f"Model file not found at {MODEL_PATH} — ensure model artifact is present or run training"
+        ) from e
 
 
 def score_from_probability(default_probability: float) -> int:
-    return int(round(np.clip(100 * (1 - default_probability), 0, 100)))
+    return round(np.clip(100 * (1 - default_probability), 0, 100))
 
 
 def score_band(score: int) -> str:

@@ -1,5 +1,6 @@
 import { env } from "@/env";
 import {
+  appBaseUrl,
   BASE_TRUST_SCORES,
   safeLimit,
   tierForScore,
@@ -37,8 +38,9 @@ export type ScoreResult = {
 
 export async function scoreProfile(input: ScoreInput): Promise<ScoreResult> {
   try {
+    const mlUrl = env.ML_SERVICE_URL ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}/api` : "http://127.0.0.1:8000");
     const response = await apiFetch<Omit<ScoreResult, "fallback">>(
-      `${env.ML_SERVICE_URL}/score`,
+      `${mlUrl}/score`,
       {
         service: "ML scoring",
         method: "POST",

@@ -9,6 +9,8 @@ import pyarrow.parquet as pq
 from ml_service.paths import DATA_DIR
 
 
+DEFAULT_SME_PREV_LOANS = 2
+
 def sample_parquet(path: Path, sample_rows: int, random_state: int) -> pd.DataFrame:
     parquet_file = pq.ParquetFile(path)
     batches = []
@@ -46,7 +48,6 @@ def load_training_frame(sample_rows: int = 200_000, random_state: int = 42) -> p
         columns={
             "business_id": "customer_id",
             "business_state": "state",
-            "tenor_months": "tenor_months",
         }
     )
     sme["tenor_days"] = sme["tenor_months"] * 30
@@ -103,6 +104,8 @@ def load_training_frame(sample_rows: int = 200_000, random_state: int = 42) -> p
             employment_type="Freelancer",
             previous_loans_count=lambda x: np.where(x["first_time_customer"], 0, 1),
         ),
+        # Default SME loans to 2 previous loans since this is a typical assumption
+        # for established businesses seeking SME credit if history isn't available
         sme[
             [
                 "customer_id",
@@ -112,7 +115,7 @@ def load_training_frame(sample_rows: int = 200_000, random_state: int = 42) -> p
                 "credit_score",
                 "default_90d",
             ]
-        ].assign(employment_type="Self-employed", previous_loans_count=2),
+        ].assign(employment_type="Self-employed", previous_loans_count=DEFAULT_SME_PREV_LOANS),
     ]
 
     loans = pd.concat(loan_frames, ignore_index=True, sort=False)
