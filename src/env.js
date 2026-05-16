@@ -1,44 +1,44 @@
 import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
 
+const requiredInProduction = (schema = z.string()) =>
+  process.env.NODE_ENV === "production" ? schema : schema.optional();
+
 export const env = createEnv({
   /**
    * Specify your server-side environment variables schema here. This way you can ensure the app
    * isn't built with invalid env vars.
    */
   server: {
-    BETTER_AUTH_SECRET:
-      process.env.NODE_ENV === "production"
-        ? z.string()
-        : z.string().optional(),
+    BETTER_AUTH_SECRET: requiredInProduction(),
     DATABASE_URL: z.string(),
-    DATABASE_AUTH_TOKEN: z.string().optional(),
+    DATABASE_AUTH_TOKEN: requiredInProduction(),
     APP_BASE_URL: z.string().url().optional(),
-    LUMIID_API_KEY: z.string().optional(),
-    LUMIID_BASE_URL: z.string().url().default("https://api.lumiid.com/api"),
-    MONO_SECRET_KEY: z.string().optional(),
-    MONO_PUBLIC_KEY: z.string().optional(),
+    LUMIID_API_KEY: requiredInProduction(),
+    LUMIID_BASE_URL: z.string().url().default("https://api.lumiid.com"),
+    MONO_SECRET_KEY: requiredInProduction(),
+    MONO_PUBLIC_KEY: requiredInProduction(),
     MONO_BASE_URL: z.string().url().default("https://api.withmono.com"),
     MONO_TELCO_API_VERSION: z.enum(["v2", "v3"]).default("v2"),
-    SQUAD_SECRET_KEY: z.string().optional(),
+    SQUAD_SECRET_KEY: requiredInProduction(),
     SQUAD_BASE_URL: z
       .string()
       .url()
       .default("https://sandbox-api-d.squadco.com"),
-    SQUAD_MERCHANT_GT_BANK_ACCOUNT: z.string().optional(),
-    CR3DENTIALS_API_KEY: z.string().optional(),
+    SQUAD_MERCHANT_GT_BANK_ACCOUNT: requiredInProduction(),
+    CR3DENTIALS_API_KEY: requiredInProduction(),
     CR3DENTIALS_BASE_URL: z
       .string()
       .url()
       .default("https://api.cr3dentials.xyz"),
-    CR3DENTIALS_WEBHOOK_SECRET: z.string().optional(),
-    LINKEDIN_CLIENT_ID: z.string().optional(),
-    LINKEDIN_CLIENT_SECRET: z.string().optional(),
-    LINKEDIN_REDIRECT_URI: z.string().url().optional(),
+    CR3DENTIALS_WEBHOOK_SECRET: requiredInProduction(),
+    LINKEDIN_CLIENT_ID: requiredInProduction(),
+    LINKEDIN_CLIENT_SECRET: requiredInProduction(),
+    LINKEDIN_REDIRECT_URI: requiredInProduction(z.string().url()),
     ML_SERVICE_URL: z.string().url().default("http://127.0.0.1:8000"),
     NGN_USD_RATE: z.coerce.number().positive().default(1500),
-    RESEND_API_KEY: z.string().optional(),
-    EMAIL_FROM: z.string().optional(),
+    RESEND_API_KEY: requiredInProduction(),
+    EMAIL_FROM: requiredInProduction(),
     PAYSLIP_OCR_PROVIDER: z
       .enum(["regex", "google-document-ai"])
       .default("regex"),
