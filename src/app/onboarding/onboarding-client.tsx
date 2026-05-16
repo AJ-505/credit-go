@@ -3,13 +3,17 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type React from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
+  ArrowLeft,
   BadgeCheck,
   Banknote,
   BriefcaseBusiness,
   Building2,
   CheckCircle2,
+  ChevronRight,
+  Eye,
+  EyeOff,
   Landmark,
   LinkIcon,
   Mail,
@@ -21,6 +25,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/server/better-auth/client";
 import { api } from "@/trpc/react";
+
+type TelcoProvider = "mtn" | "airtel" | "glo" | "9mobile";
+
+const telcoProviders: TelcoProvider[] = ["mtn", "airtel", "glo", "9mobile"];
 
 type Step =
   | "identity"
@@ -66,10 +74,50 @@ const borrowerNext: Record<string, string> = {
   reveal: "/dashboard",
 };
 
+const flowSteps = [
+  { id: "identity", label: "Identity", icon: ShieldCheck },
+  { id: "phone", label: "Phone", icon: Phone },
+  { id: "bvn", label: "Vault", icon: Banknote },
+  { id: "register", label: "Account", icon: BadgeCheck },
+  { id: "role", label: "Role", icon: BriefcaseBusiness },
+  { id: "reveal", label: "Score", icon: CheckCircle2 },
+];
+
+const allSteps = new Set(flowSteps.map((s) => s.id));
+
+function stepIndex(step: string): number {
+  return flowSteps.findIndex((s) => s.id === step);
+}
+
+function ErrorBanner({
+  message,
+  onDismiss,
+}: {
+  message: string;
+  onDismiss: () => void;
+}) {
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => {
+    timer.current = setTimeout(onDismiss, 8000);
+    return () => {
+      if (timer.current) clearTimeout(timer.current);
+    };
+  }, [message, onDismiss]);
+  return (
+    <div className="mb-5 flex items-start gap-3 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+      <span className="mt-0.5">!</span>
+      <span className="flex-1">{message}</span>
+      <button onClick={onDismiss} className="font-bold">
+        &times;
+      </button>
+    </div>
+  );
+}
+
 export function BorrowerOnboarding({ step }: { step: Step }) {
   const router = useRouter();
   const [draftId, setDraftId] = useState("");
-  const [message, setMessage] = useState("");
+  const [messages, setMessages] = useState<string[]>([]);
   const draft = api.general.getDraft.useQuery(
     { draftId },
     { enabled: Boolean(draftId) },
@@ -85,41 +133,82 @@ export function BorrowerOnboarding({ step }: { step: Step }) {
   };
 
   const fail = (error: unknown) => {
-    setMessage(error instanceof Error ? error.message : "Request failed");
+    const msg = error instanceof Error ? error.message : "Request failed";
+    setMessages((prev) => [...prev, msg]);
   };
 
+  const dismiss = (index: number) => {
+    setMessages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const currentIdx = stepIndex(step);
+  const prevStep = currentIdx > 0 ? flowSteps[currentIdx - 1] : null;
+  const prevPath = prevStep
+    ? `/onboarding/${prevStep.id === "role" ? "" : prevStep.id}`
+    : null;
+
   return (
-    <main className="min-h-screen bg-stone-50 px-4 py-8 text-stone-950">
-      <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-[280px_1fr]">
-        <aside className="h-fit rounded-lg border border-stone-200 bg-white p-5">
-          <Link href="/" className="text-xl font-black tracking-tight">
+    <main className="min-h-screen bg-stone-50">
+      <div className="mx-auto max-w-3xl px-4 py-6">
+        <div className="flex items-center justify-between gap-4">
+          <Link
+            href="/"
+            className="inline-block text-xl font-black tracking-tight text-emerald-800"
+          >
             CreditGo
           </Link>
-          <div className="mt-6 space-y-2 text-sm">
-            {[
-              ["identity", "NIN"],
-              ["phone", "Phone"],
-              ["bvn", "Vault"],
-              ["register", "Account"],
-              ["role", "Role"],
-              ["reveal", "Score"],
-            ].map(([id, label]) => (
-              <div
-                key={id}
-                className={`rounded-md px-3 py-2 ${step === id ? "bg-emerald-50 font-bold text-emerald-800" : "text-stone-500"}`}
-              >
-                {label}
-              </div>
-            ))}
-          </div>
-        </aside>
+          <Button asChild variant="outline" size="sm">
+            <Link href="/">Back to Home</Link>
+          </Button>
+        </div>
 
-        <section className="rounded-lg border border-stone-200 bg-white p-6 shadow-sm md:p-8">
-          {message ? (
-            <div className="mb-5 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-              {message}
-            </div>
+        {!allSteps.has(step) ? null : (
+          <nav className="mt-6 mb-8">
+            <ol className="flex items-center gap-1 text-sm">
+              {flowSteps.map((s, idx) => {
+                const done = idx < currentIdx;
+                const active = idx === currentIdx;
+                return (
+                  <li key={s.id} className="flex items-center gap-1">
+                    {idx > 0 && (
+                      <ChevronRight className="h-3 w-3 text-stone-300" />
+                    )}
+                    <span
+                      className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
+                        active
+                          ? "bg-emerald-100 text-emerald-800"
+                          : done
+                            ? "text-emerald-600"
+                            : "text-stone-400"
+                      }`}
+                    >
+                      <s.icon className="h-3 w-3" />
+                      {s.label}
+                    </span>
+                  </li>
+                );
+              })}
+            </ol>
+          </nav>
+        )}
+
+        <section className="rounded-xl border border-stone-200 bg-white p-6 shadow-sm md:p-10">
+          {prevPath && step !== "role" ? (
+            <button
+              onClick={() => router.push(prevPath!)}
+              className="mb-6 flex items-center gap-1 text-sm font-semibold text-stone-500 hover:text-stone-800"
+            >
+              <ArrowLeft className="h-4 w-4" /> Back
+            </button>
           ) : null}
+
+          {messages.map((msg, idx) => (
+            <ErrorBanner
+              key={idx}
+              message={msg}
+              onDismiss={() => dismiss(idx)}
+            />
+          ))}
 
           {step === "identity" ? (
             <IdentityStep onDone={saveDraftId} onError={fail} />
@@ -157,12 +246,6 @@ export function BorrowerOnboarding({ step }: { step: Step }) {
           ) : (
             <RevealStep onError={fail} />
           )}
-
-          {step !== "identity" && step !== "reveal" ? (
-            <div className="mt-8 border-t border-stone-100 pt-4 text-sm text-stone-500">
-              Draft: {draftId || "not started"}
-            </div>
-          ) : null}
         </section>
       </div>
     </main>
@@ -178,24 +261,46 @@ function IdentityStep({
 }) {
   const router = useRouter();
   const [nin, setNin] = useState("");
+  const [showNin, setShowNin] = useState(false);
   const mutation = api.identification.verifyNin.useMutation();
 
   return (
     <StepShell
       icon={<ShieldCheck />}
       title="Verify your identity"
-      subtitle="Enter your National Identification Number"
+      subtitle="Enter your 11-digit National Identification Number (NIN) to get started."
     >
+      <div className="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+        Your NIN is printed on your NIMC slip or linked to your SIM
+        registration.
+      </div>
       <Field
-        label="11-digit NIN"
+        label="NIN"
         value={nin}
         onChange={setNin}
+        type={showNin ? "text" : "password"}
         inputMode="numeric"
         maxLength={11}
+        placeholder="e.g. 12345678901"
+        trailing={
+          <button
+            type="button"
+            aria-label={showNin ? "Hide NIN" : "Show NIN"}
+            onClick={() => setShowNin((value) => !value)}
+            className="flex h-9 w-9 items-center justify-center rounded-md text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-800"
+          >
+            {showNin ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <Eye className="h-4 w-4" />
+            )}
+          </button>
+        }
       />
       <PrimaryAction
-        label="Continue"
+        label="Verify & Continue"
         loading={mutation.isPending}
+        disabled={nin.length !== 11}
         onClick={async () => {
           try {
             const result = await mutation.mutateAsync({ nin });
@@ -206,9 +311,6 @@ function IdentityStep({
           }
         }}
       />
-      <p className="text-sm text-stone-500">
-        Your NIN is on your NIMC slip or SIM registration.
-      </p>
     </StepShell>
   );
 }
@@ -224,7 +326,7 @@ function PhoneStep({
 }) {
   const router = useRouter();
   const [number, setNumber] = useState(phone);
-  const [provider, setProvider] = useState<"mtn" | "airtel">("mtn");
+  const [provider, setProvider] = useState<TelcoProvider>("mtn");
   const [otp, setOtp] = useState("");
   const [sent, setSent] = useState(false);
   const start = api.identification.initiateTelco.useMutation();
@@ -236,7 +338,7 @@ function PhoneStep({
     <StepShell
       icon={<Phone />}
       title="Confirm your phone number"
-      subtitle="Mono will send an OTP to the selected telco line."
+      subtitle="We'll send a one-time code to verify your mobile line."
     >
       <Field
         label="Phone number"
@@ -244,43 +346,69 @@ function PhoneStep({
         onChange={setNumber}
         inputMode="numeric"
         maxLength={11}
+        placeholder="e.g. 08012345678"
       />
-      <div className="grid gap-3 sm:grid-cols-2">
-        {(["mtn", "airtel"] as const).map((item) => (
-          <button
-            key={item}
-            type="button"
-            onClick={() => setProvider(item)}
-            className={`rounded-md border px-4 py-3 text-left font-semibold uppercase ${provider === item ? "border-emerald-500 bg-emerald-50 text-emerald-800" : "border-stone-200"}`}
-          >
-            {item}
-          </button>
-        ))}
+      <div>
+        <div className="mb-2 text-sm font-semibold text-stone-700">
+          Network provider
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {telcoProviders.map((item) => (
+            <button
+              key={item}
+              type="button"
+              onClick={() => setProvider(item)}
+              className={`rounded-lg border px-4 py-3 text-left font-semibold uppercase transition-colors ${
+                provider === item
+                  ? "border-emerald-500 bg-emerald-50 text-emerald-800 ring-1 ring-emerald-500"
+                  : "border-stone-200 hover:border-stone-300"
+              }`}
+            >
+              {item}
+            </button>
+          ))}
+        </div>
       </div>
-      <PrimaryAction
-        label={sent ? "Resend OTP" : "Send OTP"}
-        loading={start.isPending}
-        onClick={async () => {
-          try {
-            await start.mutateAsync({ draftId, phone: number, provider });
-            setSent(true);
-          } catch (error) {
-            onError(error);
-          }
-        }}
-      />
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <PrimaryAction
+          label={sent ? "Resend OTP" : "Send OTP"}
+          loading={start.isPending}
+          disabled={number.length !== 11}
+          onClick={async () => {
+            try {
+              await start.mutateAsync({ draftId, phone: number, provider });
+              setSent(true);
+            } catch (error) {
+              onError(error);
+            }
+          }}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          className="h-11 w-full px-5 text-base sm:w-auto"
+          onClick={() => router.push("/onboarding/identity")}
+        >
+          Back
+        </Button>
+      </div>
       {sent ? (
-        <>
+        <div className="space-y-4 rounded-lg border border-emerald-100 bg-emerald-50 p-4">
+          <p className="text-sm text-emerald-800">
+            A 6-digit code was sent to your phone.
+          </p>
           <Field
-            label="6-digit OTP"
+            label="OTP"
             value={otp}
             onChange={setOtp}
             inputMode="numeric"
             maxLength={6}
+            placeholder="000000"
           />
           <PrimaryAction
             label="Verify Phone"
             loading={verify.isPending}
+            disabled={otp.length !== 6}
             onClick={async () => {
               try {
                 await verify.mutateAsync({ draftId, otp });
@@ -290,7 +418,7 @@ function PhoneStep({
               }
             }}
           />
-        </>
+        </div>
       ) : null}
     </StepShell>
   );
@@ -849,7 +977,7 @@ function RevealStep({ onError }: { onError: (error: unknown) => void }) {
 export function LenderOnboarding({ step }: { step: LenderStep }) {
   const router = useRouter();
   const [lenderId, setLenderId] = useState("");
-  const [message, setMessage] = useState("");
+  const [messages, setMessages] = useState<string[]>([]);
   useEffect(
     () => setLenderId(localStorage.getItem("creditgo_lender_id") ?? ""),
     [],
@@ -858,45 +986,101 @@ export function LenderOnboarding({ step }: { step: LenderStep }) {
     localStorage.setItem("creditgo_lender_id", id);
     setLenderId(id);
   };
-  const onError = (error: unknown) =>
-    setMessage(error instanceof Error ? error.message : "Request failed");
+  const onError = (error: unknown) => {
+    const msg = error instanceof Error ? error.message : "Request failed";
+    setMessages((prev) => [...prev, msg]);
+  };
+
+  const lendersSteps = [
+    { id: "lender-register", label: "Register", icon: Building2 },
+    { id: "lender-kyc", label: "KYC", icon: ShieldCheck },
+    { id: "lender-config", label: "Config", icon: BriefcaseBusiness },
+    { id: "lender-settlement", label: "Settlement", icon: Banknote },
+    { id: "lender-complete", label: "Done", icon: CheckCircle2 },
+  ];
+  const currentIdx = lendersSteps.findIndex((s) => s.id === step);
+  const prevStep = currentIdx > 0 ? lendersSteps[currentIdx - 1] : null;
+  const prevPath = prevStep
+    ? `/onboarding/lender/${prevStep.id.replace("lender-", "")}`
+    : null;
 
   return (
-    <main className="min-h-screen bg-stone-50 px-4 py-8 text-stone-950">
-      <section className="mx-auto max-w-3xl rounded-lg border border-stone-200 bg-white p-6 shadow-sm md:p-8">
+    <main className="min-h-screen bg-stone-50">
+      <div className="mx-auto max-w-3xl px-4 py-6">
         <Link
           href="/"
-          className="text-xl font-black tracking-tight text-blue-900"
+          className="inline-block text-xl font-black tracking-tight text-blue-900"
         >
           CreditGo Partners
         </Link>
-        {message ? (
-          <div className="my-5 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-            {message}
-          </div>
-        ) : null}
-        {step === "lender-register" ? (
-          <LenderRegister onDone={save} onError={onError} />
-        ) : null}
-        {step === "lender-kyc" ? (
-          <LenderKyc lenderId={lenderId} onError={onError} />
-        ) : null}
-        {step === "lender-config" ? (
-          <LenderConfig lenderId={lenderId} onError={onError} />
-        ) : null}
-        {step === "lender-settlement" ? (
-          <LenderSettlement lenderId={lenderId} onError={onError} />
-        ) : null}
-        {step === "lender-complete" ? (
-          <StepShell
-            icon={<CheckCircle2 />}
-            title="Partner account ready"
-            subtitle="Your dashboard and API access are ready once your saved API key is configured in your systems."
-          >
-            <Button onClick={() => router.push("/")}>Return Home</Button>
-          </StepShell>
-        ) : null}
-      </section>
+
+        <nav className="mt-6 mb-8">
+          <ol className="flex items-center gap-1 text-sm">
+            {lendersSteps.map((s, idx) => {
+              const done = idx < currentIdx;
+              const active = idx === currentIdx;
+              return (
+                <li key={s.id} className="flex items-center gap-1">
+                  {idx > 0 && (
+                    <ChevronRight className="h-3 w-3 text-stone-300" />
+                  )}
+                  <span
+                    className={`flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
+                      active
+                        ? "bg-blue-100 text-blue-800"
+                        : done
+                          ? "text-blue-600"
+                          : "text-stone-400"
+                    }`}
+                  >
+                    <s.icon className="h-3 w-3" />
+                    {s.label}
+                  </span>
+                </li>
+              );
+            })}
+          </ol>
+        </nav>
+
+        <section className="rounded-xl border border-stone-200 bg-white p-6 shadow-sm md:p-10">
+          {prevPath ? (
+            <button
+              onClick={() => router.push(prevPath!)}
+              className="mb-6 flex items-center gap-1 text-sm font-semibold text-stone-500 hover:text-stone-800"
+            >
+              <ArrowLeft className="h-4 w-4" /> Back
+            </button>
+          ) : null}
+
+          {messages.map((msg, idx) => (
+            <ErrorBanner
+              key={idx}
+              message={msg}
+              onDismiss={() =>
+                setMessages((prev) => prev.filter((_, i) => i !== idx))
+              }
+            />
+          ))}
+
+          {step === "lender-register" ? (
+            <LenderRegister onDone={save} onError={onError} />
+          ) : step === "lender-kyc" ? (
+            <LenderKyc lenderId={lenderId} onError={onError} />
+          ) : step === "lender-config" ? (
+            <LenderConfig lenderId={lenderId} onError={onError} />
+          ) : step === "lender-settlement" ? (
+            <LenderSettlement lenderId={lenderId} onError={onError} />
+          ) : (
+            <StepShell
+              icon={<CheckCircle2 />}
+              title="Partner account ready"
+              subtitle="Your dashboard and API access are ready once your saved API key is configured in your systems."
+            >
+              <Button onClick={() => router.push("/")}>Return Home</Button>
+            </StepShell>
+          )}
+        </section>
+      </div>
     </main>
   );
 }
@@ -1187,6 +1371,8 @@ function Field({
   type = "text",
   inputMode,
   maxLength,
+  placeholder,
+  trailing,
 }: {
   label: string;
   value: string;
@@ -1194,18 +1380,28 @@ function Field({
   type?: string;
   inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
   maxLength?: number;
+  placeholder?: string;
+  trailing?: React.ReactNode;
 }) {
   return (
-    <label className="block space-y-2 text-sm font-semibold">
+    <label className="block space-y-1.5 text-sm font-semibold text-stone-700">
       {label}
-      <input
-        className="w-full rounded-md border border-stone-300 px-3 py-2 font-normal outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        type={type}
-        inputMode={inputMode}
-        maxLength={maxLength}
-      />
+      <span className="relative block">
+        <input
+          className={`w-full rounded-lg border border-stone-300 px-3.5 py-2.5 font-normal transition-colors outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 ${trailing ? "pr-12" : ""}`}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          type={type}
+          inputMode={inputMode}
+          maxLength={maxLength}
+          placeholder={placeholder}
+        />
+        {trailing ? (
+          <span className="absolute top-1/2 right-1.5 -translate-y-1/2">
+            {trailing}
+          </span>
+        ) : null}
+      </span>
     </label>
   );
 }
@@ -1241,20 +1437,29 @@ function ReadOnly({ label, value }: { label: string; value: string }) {
 function PrimaryAction({
   label,
   loading,
+  disabled,
   onClick,
 }: {
   label: string;
   loading?: boolean;
+  disabled?: boolean;
   onClick: () => void | Promise<void>;
 }) {
   return (
     <Button
       type="button"
-      disabled={loading}
+      disabled={disabled || loading}
       onClick={onClick}
-      className="h-11 px-5"
+      className="h-11 w-full px-5 text-base sm:w-auto"
     >
-      {loading ? "Working..." : label}
+      {loading ? (
+        <span className="flex items-center gap-2">
+          <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+          Working...
+        </span>
+      ) : (
+        label
+      )}
     </Button>
   );
 }
