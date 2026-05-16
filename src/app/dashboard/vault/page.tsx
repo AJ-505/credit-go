@@ -1,84 +1,196 @@
+"use client";
+
 import Link from "next/link";
-import { Settings, Share, ArrowRight, Play, Pause } from "lucide-react";
+import { Settings, Share, ArrowRight, Pause, Play } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export default function VaultPage() {
+  const [sweepAmount, setSweepAmount] = useState(5000);
+  const [paused, setPaused] = useState(false);
+  const [showAllActivity, setShowAllActivity] = useState(false);
+  const activity = [
+    {
+      date: "May 15",
+      amount: "+₦5,000",
+      type: "Auto-sweep",
+      status: "success",
+    },
+    {
+      date: "May 14",
+      amount: "+₦5,000",
+      type: "Auto-sweep",
+      status: "success",
+    },
+    {
+      date: "May 13",
+      amount: "+₦10,000",
+      type: "Manual top-up",
+      status: "success",
+    },
+    {
+      date: "May 12",
+      amount: "+₦5,000",
+      type: "Auto-sweep",
+      status: "success",
+    },
+    {
+      date: "May 11",
+      amount: "MISSED",
+      type: "Auto-sweep",
+      status: "failed",
+    },
+    {
+      date: "May 10",
+      amount: "+₦5,000",
+      type: "Auto-sweep",
+      status: "success",
+    },
+    {
+      date: "May 09",
+      amount: "+₦5,000",
+      type: "Auto-sweep",
+      status: "success",
+    },
+  ];
+  const visibleActivity = showAllActivity ? activity : activity.slice(0, 5);
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Savings Vault</h1>
-          <p className="text-muted-foreground">Manage your auto-sweep and repayment funds.</p>
+          <p className="text-muted-foreground">
+            Manage your auto-sweep and repayment funds.
+          </p>
         </div>
-        <button className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors bg-secondary text-secondary-foreground hover:bg-secondary/80 h-10 py-2 px-4">
+        <button
+          onClick={() =>
+            toast.success("Vault settings saved for this session.")
+          }
+          className="bg-secondary text-secondary-foreground hover:bg-secondary/80 inline-flex h-10 items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors"
+        >
           <Settings className="mr-2 h-4 w-4" /> Settings
         </button>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <div className="rounded-xl border bg-card text-card-foreground shadow p-6 flex flex-col gap-6">
+        <div className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border p-6 shadow">
           <div>
-            <p className="text-sm font-medium text-muted-foreground">Balance</p>
-            <div className="text-4xl font-bold mt-1">₦245,000</div>
-            <div className="mt-4 h-2 w-full bg-muted rounded-full overflow-hidden">
-              <div className="h-full bg-primary w-[40%]"></div>
+            <p className="text-muted-foreground text-sm font-medium">Balance</p>
+            <div className="mt-1 text-4xl font-bold">₦245,000</div>
+            <div className="bg-muted mt-4 h-2 w-full overflow-hidden rounded-full">
+              <div className="bg-primary h-full w-[40%]"></div>
             </div>
-            <p className="text-sm text-muted-foreground mt-2">40% toward ₦600K active loan</p>
+            <p className="text-muted-foreground mt-2 text-sm">
+              40% toward ₦600K active loan
+            </p>
           </div>
 
-          <div className="flex items-center justify-between pt-4 border-t">
+          <div className="flex items-center justify-between border-t pt-4">
             <div className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-100 text-orange-600 font-bold">🔥</span>
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-100 font-bold text-orange-600">
+                🔥
+              </span>
               <span className="font-semibold">12-day streak</span>
             </div>
-            <button className="text-sm font-medium text-primary flex items-center gap-1 hover:underline">
+            <button
+              onClick={() =>
+                toast.success("Vault progress copied to share card.")
+              }
+              className="text-primary flex items-center gap-1 text-sm font-medium hover:underline"
+            >
               <Share className="h-4 w-4" /> Share
             </button>
           </div>
         </div>
 
-        <div className="rounded-xl border bg-card text-card-foreground shadow p-6 flex flex-col gap-4">
-          <h3 className="font-semibold text-lg border-b pb-2">Next Sweep</h3>
+        <div className="bg-card text-card-foreground flex flex-col gap-4 rounded-xl border p-6 shadow">
+          <h3 className="border-b pb-2 text-lg font-semibold">Next Sweep</h3>
           <div>
-            <p className="text-sm text-muted-foreground">Today at 6:00 PM</p>
-            <p className="text-2xl font-bold mt-1">₦5,000</p>
+            <p className="text-muted-foreground text-sm">
+              {paused ? "Paused" : "Today at 6:00 PM"}
+            </p>
+            <p className="mt-1 text-2xl font-bold">
+              ₦{sweepAmount.toLocaleString()}
+            </p>
           </div>
-          <div className="flex gap-3 mt-auto">
-            <button className="flex-1 inline-flex items-center justify-center rounded-md text-sm font-medium border bg-background hover:bg-muted h-10 px-4">
+          <div className="mt-auto flex gap-3">
+            <button
+              onClick={() => {
+                const nextAmount = sweepAmount === 5000 ? 10000 : 5000;
+                setSweepAmount(nextAmount);
+                toast.success(
+                  `Next sweep approved at ₦${nextAmount.toLocaleString()}.`,
+                );
+              }}
+              className="bg-background hover:bg-muted inline-flex h-10 flex-1 items-center justify-center rounded-md border px-4 text-sm font-medium"
+            >
               Adjust Amount
             </button>
-            <button className="flex-1 inline-flex items-center justify-center rounded-md text-sm font-medium border bg-background hover:bg-muted h-10 px-4">
-              <Pause className="mr-2 h-4 w-4" /> Pause Sweep
+            <button
+              onClick={() => {
+                setPaused((value) => {
+                  const next = !value;
+                  toast.success(
+                    next
+                      ? "Auto-sweep paused. No debit will run today."
+                      : "Auto-sweep resumed for today at 6:00 PM.",
+                  );
+                  return next;
+                });
+              }}
+              className="bg-background hover:bg-muted inline-flex h-10 flex-1 items-center justify-center rounded-md border px-4 text-sm font-medium"
+            >
+              {paused ? (
+                <Play className="mr-2 h-4 w-4" />
+              ) : (
+                <Pause className="mr-2 h-4 w-4" />
+              )}
+              {paused ? "Resume Sweep" : "Pause Sweep"}
             </button>
           </div>
         </div>
       </div>
 
-      <div className="rounded-xl border bg-card text-card-foreground shadow overflow-hidden">
-        <div className="p-6 pb-4 border-b">
-          <h3 className="font-semibold text-lg">Recent Vault Activity</h3>
+      <div className="bg-card text-card-foreground overflow-hidden rounded-xl border shadow">
+        <div className="border-b p-6 pb-4">
+          <h3 className="text-lg font-semibold">Recent Vault Activity</h3>
         </div>
         <div className="divide-y">
-          {[
-            { date: 'May 15', amount: '+₦5,000', type: 'Auto-sweep', status: 'success' },
-            { date: 'May 14', amount: '+₦5,000', type: 'Auto-sweep', status: 'success' },
-            { date: 'May 13', amount: '+₦10,000', type: 'Manual top-up', status: 'success' },
-            { date: 'May 12', amount: '+₦5,000', type: 'Auto-sweep', status: 'success' },
-            { date: 'May 11', amount: 'MISSED', type: 'Auto-sweep', status: 'failed' },
-          ].map((tx, i) => (
-            <div key={i} className="p-4 px-6 flex justify-between items-center hover:bg-muted/50 transition-colors">
+          {visibleActivity.map((tx, i) => (
+            <div
+              key={`${tx.date}-${i}`}
+              className="hover:bg-muted/50 flex items-center justify-between p-4 px-6 transition-colors"
+            >
               <div>
                 <p className="font-medium">{tx.date}</p>
-                <p className="text-sm text-muted-foreground">{tx.type}</p>
+                <p className="text-muted-foreground text-sm">{tx.type}</p>
               </div>
-              <div className={`font-semibold ${tx.status === 'failed' ? 'text-destructive' : 'text-green-600'}`}>
+              <div
+                className={`font-semibold ${
+                  tx.status === "failed" ? "text-destructive" : "text-green-600"
+                }`}
+              >
                 {tx.amount}
               </div>
             </div>
           ))}
         </div>
-        <div className="p-4 bg-muted/20 flex justify-center">
-          <button className="text-sm font-medium text-primary hover:underline flex items-center gap-1">
-            View All Transactions <ArrowRight className="h-4 w-4" />
+        <div className="bg-muted/20 flex justify-center p-4">
+          <button
+            onClick={() => {
+              setShowAllActivity((value) => !value);
+              toast.success(
+                showAllActivity
+                  ? "Showing recent transactions."
+                  : "Full transaction history loaded.",
+              );
+            }}
+            className="text-primary flex items-center gap-1 text-sm font-medium hover:underline"
+          >
+            {showAllActivity ? "Show Recent" : "View All Transactions"}{" "}
+            <ArrowRight className="h-4 w-4" />
           </button>
         </div>
       </div>
