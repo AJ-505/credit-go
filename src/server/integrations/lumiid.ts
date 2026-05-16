@@ -28,9 +28,12 @@ type LumiIdEnvelope<T> = {
 };
 
 export async function verifyNin(nin: string) {
+  const mock = verifyMockNin(nin);
+  if (mock) return mock;
+
   const key = requireEnv(env.LUMIID_API_KEY, "LUMIID_API_KEY");
   const response = await apiFetch<LumiIdEnvelope<LumiIdNinData>>(
-    `${env.LUMIID_BASE_URL}/v1/ng/nin-basic/`,
+    lumiIdUrl("/v1/identities/verify/"),
     {
       service: "LumiID NIN",
       method: "POST",
@@ -38,7 +41,13 @@ export async function verifyNin(nin: string) {
         Authorization: `Bearer ${key}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ id_number: nin }),
+      body: JSON.stringify({
+        country: "NG",
+        id_type: "NIN",
+        method: "identity",
+        level: "basic",
+        params: { id_number: nin },
+      }),
     },
   );
 
@@ -54,6 +63,52 @@ export async function verifyNin(nin: string) {
   return response.data;
 }
 
+function verifyMockNin(nin: string) {
+  // NOTE: Mock NIN test values while LumiID org approval is blocked: 11112222333 passes, 00000000000 returns record-not-found, 99999999999 simulates provider outage. Any other 11-digit NIN falls through to real LumiID.
+  if (nin === "11112222333") {
+    return {
+      nin,
+      firstname: "Ada",
+      lastname: "Okafor",
+      middlename: "Chiamaka",
+      phone: "08012345678",
+      gender: "f",
+      birthdate: "14-04-1994",
+      photo: "",
+      residence: {
+        address1: "12 Marina Road",
+        town: "Lagos Island",
+        lga: "Lagos Island",
+        state: "Lagos",
+      },
+    } satisfies LumiIdNinData;
+  }
+
+  if (nin === "00000000000") {
+    throw new ProviderApiError({
+      status: 404,
+      code: "RECORD_NOT_FOUND",
+      message: "No matching identity found for this NIN",
+      service: "Mock LumiID NIN",
+      method: "POST",
+      body: { nin, success: false, code: "RECORD_NOT_FOUND" },
+    });
+  }
+
+  if (nin === "99999999999") {
+    throw new ProviderApiError({
+      status: 503,
+      code: "SERVICE_UNAVAILABLE",
+      message: "Mock LumiID NIN service is temporarily unavailable",
+      service: "Mock LumiID NIN",
+      method: "POST",
+      body: { nin, success: false, code: "SERVICE_UNAVAILABLE" },
+    });
+  }
+
+  return null;
+}
+
 export type LumiIdCacData = {
   companyName?: string;
   company_name?: string;
@@ -67,7 +122,7 @@ export type LumiIdCacData = {
 export async function verifyCac(rcNumber: string) {
   const key = requireEnv(env.LUMIID_API_KEY, "LUMIID_API_KEY");
   const response = await apiFetch<LumiIdEnvelope<LumiIdCacData>>(
-    `${env.LUMIID_BASE_URL}/v1/identities/verify/`,
+    lumiIdUrl("/v1/identities/verify/"),
     {
       service: "LumiID CAC",
       method: "POST",
@@ -78,6 +133,7 @@ export async function verifyCac(rcNumber: string) {
       body: JSON.stringify({
         country: "NG",
         id_type: "CAC",
+        method: "identity",
         level: "basic",
         params: { id_number: rcNumber },
       }),
@@ -94,4 +150,9 @@ export async function verifyCac(rcNumber: string) {
   }
 
   return response.data;
+}
+
+function lumiIdUrl(path: string) {
+  const base = env.LUMIID_BASE_URL.replace(/\/+$/, "").replace(/\/api$/, "");
+  return `${base}${path}`;
 }
