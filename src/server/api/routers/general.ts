@@ -42,15 +42,37 @@ const personaSchema = z.enum([
   "government_official",
 ]);
 
+function isFetchFailed(error: unknown) {
+  return error instanceof Error && error.message.includes("fetch failed");
+}
+
 export const generalRouter = createTRPCRouter({
   getDraft: publicProcedure
     .input(z.object({ draftId: z.string() }))
     .query(async ({ ctx, input }) => {
-      return (
-        (await ctx.db.query.onboardingDraft.findFirst({
-          where: eq(onboardingDraft.id, input.draftId),
-        })) ?? null
-      );
+      try {
+        return (
+          (await ctx.db.query.onboardingDraft.findFirst({
+            where: eq(onboardingDraft.id, input.draftId),
+          })) ?? null
+        );
+      } catch (error) {
+        if (isFetchFailed(error)) {
+          return (
+            (await ctx.db.query.onboardingDraft.findFirst({
+              where: eq(onboardingDraft.id, input.draftId),
+            })) ?? null
+          );
+        }
+
+        console.error("Failed to fetch onboarding draft", {
+          draftId: input.draftId,
+          error,
+        });
+        throw new Error(
+          "Unable to load onboarding draft. Check database connectivity and try again.",
+        );
+      }
     }),
 
   completeRegistration: protectedProcedure
