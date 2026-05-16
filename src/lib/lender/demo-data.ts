@@ -29,6 +29,7 @@ export const lenderProfile = {
 export const kpis = [
   { label: "Active Loans", value: "₦452.0M", detail: "1,247 borrowers", trend: "+8.4%" },
   { label: "Total Disbursed", value: "₦482.0M", detail: "This month: +₦52M", trend: "+12.1%" },
+  { label: "Interest Earned", value: "₦38.2M", detail: "This month: +₦4.1M", trend: "+11.8%" },
   { label: "Default Rate", value: "1.3%", detail: "vs 1.5% last month", trend: "-0.2%" },
   { label: "Avg Trust Score", value: "68", detail: "Gold median book", trend: "+2 pts" },
 ] as const;

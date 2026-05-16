@@ -17,7 +17,7 @@ export async function sendOtpEmail(input: { to: string; code: string }) {
     body: JSON.stringify({
       from: env.EMAIL_FROM ?? "CreditGo <onboarding@example.com>",
       to: [input.to],
-      subject: "Your CreditGo work email code",
+      subject: "Your CreditGo verification code",
       html: `<p>Your CreditGo verification code is <strong>${input.code}</strong>.</p><p>This code expires in 10 minutes.</p>`,
     }),
   });

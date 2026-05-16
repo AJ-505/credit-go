@@ -119,6 +119,21 @@ export default function MarketplaceDetailPage({
     return offers[index] ?? offers[0];
   }, [id]);
 
+  const handleApply = () => {
+    const existing = JSON.parse(localStorage.getItem("creditgo_loan_applications") ?? "[]") as { id: number; lender: string; product: string; amount: string; rate: string; tenor: string; appliedAt: string }[];
+    existing.push({
+      id: Number(id),
+      lender: option.lender,
+      product: option.product,
+      amount: option.range,
+      rate: option.rate,
+      tenor: option.tenor,
+      appliedAt: new Date().toISOString(),
+    });
+    localStorage.setItem("creditgo_loan_applications", JSON.stringify(existing));
+    setSubmitted(true);
+  };
+
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6">
       <Link
@@ -220,11 +235,10 @@ export default function MarketplaceDetailPage({
           <div className="mt-8 rounded-lg border border-emerald-200 bg-white p-5">
             <p className="flex items-center gap-2 font-black text-emerald-800">
               <CheckCircle2 className="h-5 w-5" />
-              Application started
+              Application submitted
             </p>
             <p className="mt-2 text-sm text-stone-500">
-              Your profile, cash-flow score, and selected offer have been
-              prepared for lender review.
+              Your verified profile and documents have been sent to {option.lender}. You will be notified once approved.
             </p>
           </div>
         ) : null}
@@ -232,10 +246,10 @@ export default function MarketplaceDetailPage({
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <button
             type="button"
-            onClick={() => setSubmitted(true)}
+            onClick={handleApply}
             className="h-11 rounded-lg bg-emerald-600 px-5 text-sm font-bold text-white hover:bg-emerald-700"
           >
-            Start Application
+            Apply Now — One-Click
           </button>
           <Link
             href="/dashboard/marketplace"

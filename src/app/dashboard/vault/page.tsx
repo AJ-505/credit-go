@@ -1,84 +1,87 @@
 "use client";
 
 import Link from "next/link";
-import { Settings, Share, ArrowRight, Pause, Play } from "lucide-react";
+import { Share, ArrowRight, Pause, Play, ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+const amountOptions = [3000, 5000, 10000, 20000, 50000];
+const frequencies = [
+  { value: "daily", label: "Daily", nextSweep: "Today at 6:00 PM" },
+  { value: "weekly", label: "Weekly", nextSweep: "Friday at 6:00 PM" },
+  { value: "monthly", label: "Monthly", nextSweep: "Month-end at 6:00 PM" },
+] as const;
+
 export default function VaultPage() {
   const [sweepAmount, setSweepAmount] = useState(5000);
-  const [frequencyLabel, setFrequencyLabel] = useState("Daily");
-  const [nextSweep, setNextSweep] = useState("Today at 6:00 PM");
+  const [frequency, setFrequency] = useState<(typeof frequencies)[number]>(
+    frequencies[0],
+  );
   const [paused, setPaused] = useState(false);
+  const [showAmountPicker, setShowAmountPicker] = useState(false);
+  const [showFreqPicker, setShowFreqPicker] = useState(false);
   const [showAllActivity, setShowAllActivity] = useState(false);
+
   const activity = [
-    {
-      date: "May 15",
-      amount: "+₦5,000",
-      type: "Auto-sweep",
-      status: "success",
-    },
-    {
-      date: "May 14",
-      amount: "+₦5,000",
-      type: "Auto-sweep",
-      status: "success",
-    },
-    {
-      date: "May 13",
-      amount: "+₦10,000",
-      type: "Manual top-up",
-      status: "success",
-    },
-    {
-      date: "May 12",
-      amount: "+₦5,000",
-      type: "Auto-sweep",
-      status: "success",
-    },
-    {
-      date: "May 11",
-      amount: "MISSED",
-      type: "Auto-sweep",
-      status: "failed",
-    },
-    {
-      date: "May 10",
-      amount: "+₦5,000",
-      type: "Auto-sweep",
-      status: "success",
-    },
-    {
-      date: "May 09",
-      amount: "+₦5,000",
-      type: "Auto-sweep",
-      status: "success",
-    },
+    { date: "May 15", amount: "+₦5,000", type: "Auto-sweep", status: "success" },
+    { date: "May 14", amount: "+₦5,000", type: "Auto-sweep", status: "success" },
+    { date: "May 13", amount: "+₦10,000", type: "Manual top-up", status: "success" },
+    { date: "May 12", amount: "+₦5,000", type: "Auto-sweep", status: "success" },
+    { date: "May 11", amount: "MISSED", type: "Auto-sweep", status: "failed" },
+    { date: "May 10", amount: "+₦5,000", type: "Auto-sweep", status: "success" },
+    { date: "May 09", amount: "+₦5,000", type: "Auto-sweep", status: "success" },
   ];
   const visibleActivity = showAllActivity ? activity : activity.slice(0, 5);
 
   useEffect(() => {
-    const savedVault = localStorage.getItem("creditgo_vault_setup");
-    if (!savedVault) return;
-    const parsed = JSON.parse(savedVault) as {
+    const saved = localStorage.getItem("creditgo_vault_setup");
+    if (!saved) return;
+    const parsed = JSON.parse(saved) as {
       amount?: number;
       frequencyLabel?: string;
       nextSweep?: string;
     };
     if (parsed.amount) setSweepAmount(parsed.amount);
-    if (parsed.frequencyLabel) setFrequencyLabel(parsed.frequencyLabel);
-    if (parsed.nextSweep) setNextSweep(parsed.nextSweep);
+    if (parsed.frequencyLabel) {
+      const match = frequencies.find((f) => f.label === parsed.frequencyLabel);
+      if (match) setFrequency(match);
+    }
   }, []);
 
-  const saveVault = (amount: number) => {
+  const saveVault = (amount: number, freq: typeof frequency) => {
     localStorage.setItem(
       "creditgo_vault_setup",
       JSON.stringify({
         amount,
-        frequencyLabel,
-        nextSweep,
+        frequency: freq.value,
+        frequencyLabel: freq.label,
+        nextSweep: freq.nextSweep,
       }),
     );
+  };
+
+  const handleAdjustAmount = (amount: number) => {
+    setSweepAmount(amount);
+    saveVault(amount, frequency);
+    setShowAmountPicker(false);
+    toast.success(`Next sweep set to ₦${amount.toLocaleString()}.`);
+  };
+
+  const handleChangeFrequency = (freq: (typeof frequencies)[number]) => {
+    setFrequency(freq);
+    saveVault(sweepAmount, freq);
+    setShowFreqPicker(false);
+    toast.success(`Frequency changed to ${freq.label}.`);
+  };
+
+  const handleShare = async () => {
+    const text = `🔥 CreditGo Vault\nBalance: ₦245,000\nStreak: 12 days\nAuto-sweep: ₦${sweepAmount.toLocaleString()}/${frequency.label.toLowerCase()}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("Vault summary copied to clipboard.");
+    } catch {
+      toast.success("Vault progress copied to share card.");
+    }
   };
 
   return (
@@ -90,14 +93,6 @@ export default function VaultPage() {
             Manage your auto-sweep and repayment funds.
           </p>
         </div>
-        <button
-          onClick={() =>
-            toast.success("Vault settings saved for this session.")
-          }
-          className="bg-secondary text-secondary-foreground hover:bg-secondary/80 inline-flex h-10 items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors"
-        >
-          <Settings className="mr-2 h-4 w-4" /> Settings
-        </button>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -115,15 +110,13 @@ export default function VaultPage() {
 
           <div className="flex items-center justify-between border-t pt-4">
             <div className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-100 font-bold text-orange-600">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-100 font-bold text-orange-600 text-lg">
                 🔥
               </span>
               <span className="font-semibold">12-day streak</span>
             </div>
             <button
-              onClick={() =>
-                toast.success("Vault progress copied to share card.")
-              }
+              onClick={handleShare}
               className="text-primary flex items-center gap-1 text-sm font-medium hover:underline"
             >
               <Share className="h-4 w-4" /> Share
@@ -135,34 +128,76 @@ export default function VaultPage() {
           <h3 className="border-b pb-2 text-lg font-semibold">Next Sweep</h3>
           <div>
             <p className="text-muted-foreground text-sm">
-              {paused ? "Paused" : nextSweep}
+              {paused ? "Paused" : frequency.nextSweep}
             </p>
             <p className="mt-1 text-2xl font-bold">
               ₦{sweepAmount.toLocaleString()}
             </p>
           </div>
+
+          {/* Amount picker */}
+          <div className="relative">
+            <button
+              onClick={() => setShowAmountPicker(!showAmountPicker)}
+              className="bg-background hover:bg-muted inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border px-4 text-sm font-medium"
+            >
+              ₦{sweepAmount.toLocaleString()} <ChevronDown className="h-4 w-4" />
+            </button>
+            {showAmountPicker && (
+              <div className="absolute bottom-full left-0 right-0 mb-2 z-10 rounded-lg border bg-white p-2 shadow-xl">
+                {amountOptions.map((amt) => (
+                  <button
+                    key={amt}
+                    onClick={() => handleAdjustAmount(amt)}
+                    className={`w-full rounded-md px-4 py-2 text-left text-sm font-semibold transition ${
+                      amt === sweepAmount
+                        ? "bg-emerald-50 text-emerald-800"
+                        : "text-stone-700 hover:bg-stone-50"
+                    }`}
+                  >
+                    ₦{amt.toLocaleString()}/sweep
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Frequency picker */}
+          <div className="relative">
+            <button
+              onClick={() => setShowFreqPicker(!showFreqPicker)}
+              className="bg-background hover:bg-muted inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border px-4 text-sm font-medium"
+            >
+              {frequency.label} <ChevronDown className="h-4 w-4" />
+            </button>
+            {showFreqPicker && (
+              <div className="absolute bottom-full left-0 right-0 mb-2 z-10 rounded-lg border bg-white p-2 shadow-xl">
+                {frequencies.map((freq) => (
+                  <button
+                    key={freq.value}
+                    onClick={() => handleChangeFrequency(freq)}
+                    className={`w-full rounded-md px-4 py-2 text-left text-sm font-semibold transition ${
+                      freq.value === frequency.value
+                        ? "bg-emerald-50 text-emerald-800"
+                        : "text-stone-700 hover:bg-stone-50"
+                    }`}
+                  >
+                    {freq.label} — {freq.nextSweep}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="mt-auto flex gap-3">
             <button
               onClick={() => {
-                const nextAmount = sweepAmount === 5000 ? 10000 : 5000;
-                setSweepAmount(nextAmount);
-                saveVault(nextAmount);
-                toast.success(
-                  `Next sweep approved at ₦${nextAmount.toLocaleString()}.`,
-                );
-              }}
-              className="bg-background hover:bg-muted inline-flex h-10 flex-1 items-center justify-center rounded-md border px-4 text-sm font-medium"
-            >
-              Adjust Amount
-            </button>
-            <button
-              onClick={() => {
-                setPaused((value) => {
-                  const next = !value;
+                setPaused((prev) => {
+                  const next = !prev;
                   toast.success(
                     next
-                      ? "Auto-sweep paused. No debit will run today."
-                      : `Auto-sweep resumed for ${nextSweep}.`,
+                      ? "Auto-sweep paused."
+                      : `Auto-sweep resumed.`,
                   );
                   return next;
                 });
@@ -176,6 +211,12 @@ export default function VaultPage() {
               )}
               {paused ? "Resume Sweep" : "Pause Sweep"}
             </button>
+            <Link
+              href="/dashboard"
+              className="bg-background hover:bg-muted inline-flex h-10 flex-1 items-center justify-center rounded-md border px-4 text-sm font-medium"
+            >
+              Back to Dashboard
+            </Link>
           </div>
         </div>
       </div>
@@ -196,7 +237,9 @@ export default function VaultPage() {
               </div>
               <div
                 className={`font-semibold ${
-                  tx.status === "failed" ? "text-destructive" : "text-green-600"
+                  tx.status === "failed"
+                    ? "text-destructive"
+                    : "text-green-600"
                 }`}
               >
                 {tx.amount}
@@ -206,14 +249,7 @@ export default function VaultPage() {
         </div>
         <div className="bg-muted/20 flex justify-center p-4">
           <button
-            onClick={() => {
-              setShowAllActivity((value) => !value);
-              toast.success(
-                showAllActivity
-                  ? "Showing recent transactions."
-                  : "Full transaction history loaded.",
-              );
-            }}
+            onClick={() => setShowAllActivity((v) => !v)}
             className="text-primary flex items-center gap-1 text-sm font-medium hover:underline"
           >
             {showAllActivity ? "Show Recent" : "View All Transactions"}{" "}

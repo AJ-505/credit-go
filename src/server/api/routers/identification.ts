@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
 
 import { env } from "@/env";
@@ -11,9 +11,12 @@ import {
   verifyTelcoOtp,
 } from "@/server/integrations/mono";
 import { providerErrorToTrpc } from "@/server/integrations/http";
-import { onboardingDraft } from "@/server/db/schema";
+import { onboardingDraft, workEmailOtp } from "@/server/db/schema";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { sendOtpEmail } from "@/server/integrations/email";
 import {
+  generateOtp,
+  hashSecret,
   makeId,
   mapResidenceState,
   stringSimilarity,
@@ -158,5 +161,89 @@ export const identificationRouter = createTRPCRouter({
       } catch (error) {
         providerErrorToTrpc(error, "Phone verification failed");
       }
+    }),
+
+  initiateEmailOtp: publicProcedure
+    .input(
+      z.object({
+        draftId: z.string(),
+        email: z.string().email("Valid email required"),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const draft = await ctx.db.query.onboardingDraft.findFirst({
+        where: eq(onboardingDraft.id, input.draftId),
+      });
+      if (!draft) throw new Error("Onboarding draft not found");
+
+      const code = generateOtp();
+      const codeHash = hashSecret(code);
+
+      await ctx.db.insert(workEmailOtp).values({
+        id: makeId("em_otp"),
+        draftId: input.draftId,
+        email: input.email,
+        codeHash,
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      });
+
+      await ctx.db
+        .update(onboardingDraft)
+        .set({ email: input.email, updatedAt: new Date() })
+        .where(eq(onboardingDraft.id, input.draftId));
+
+      const result = await sendOtpEmail({ to: input.email, code });
+      return { delivered: result.delivered, devCode: result.devCode };
+    }),
+
+  verifyEmailOtp: publicProcedure
+    .input(
+      z.object({
+        draftId: z.string(),
+        otp: z.string().regex(/^\d{6}$/, "OTP must be 6 digits"),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const draft = await ctx.db.query.onboardingDraft.findFirst({
+        where: eq(onboardingDraft.id, input.draftId),
+      });
+      if (!draft) throw new Error("Onboarding draft not found");
+      if (!draft.email) throw new Error("No email set for this draft");
+
+      const otpRecord = await ctx.db.query.workEmailOtp.findFirst({
+        where: and(
+          eq(workEmailOtp.draftId, input.draftId),
+          eq(workEmailOtp.email, draft.email),
+          isNull(workEmailOtp.consumedAt),
+        ),
+        orderBy: (records, { desc }) => [desc(records.createdAt)],
+      });
+      if (!otpRecord) throw new Error("No OTP sent to this email");
+      if (otpRecord.expiresAt < new Date()) throw new Error("OTP expired");
+      if (otpRecord.attempts >= 5) throw new Error("Too many attempts");
+
+      if (otpRecord.codeHash !== hashSecret(input.otp)) {
+        await ctx.db
+          .update(workEmailOtp)
+          .set({ attempts: otpRecord.attempts + 1 })
+          .where(eq(workEmailOtp.id, otpRecord.id));
+        throw new Error("Invalid OTP");
+      }
+
+      await ctx.db
+        .update(workEmailOtp)
+        .set({ consumedAt: new Date() })
+        .where(eq(workEmailOtp.id, otpRecord.id));
+
+      await ctx.db
+        .update(onboardingDraft)
+        .set({
+          emailConfirmed: true,
+          step: "bvn",
+          updatedAt: new Date(),
+        })
+        .where(eq(onboardingDraft.id, input.draftId));
+
+      return { confirmed: true };
     }),
 });

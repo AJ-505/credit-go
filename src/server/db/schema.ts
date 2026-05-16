@@ -162,6 +162,9 @@ export const onboardingDraft = sqliteTable(
     phoneConfirmed: integer({ mode: "boolean" })
       .$defaultFn(() => false)
       .notNull(),
+    emailConfirmed: integer({ mode: "boolean" })
+      .$defaultFn(() => false)
+      .notNull(),
     employmentVerified: integer({ mode: "boolean" })
       .$defaultFn(() => false)
       .notNull(),

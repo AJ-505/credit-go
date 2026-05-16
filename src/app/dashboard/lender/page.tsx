@@ -13,7 +13,7 @@ export default function LenderDashboardPage() {
         description="Real-time overview of disbursements, borrower health, pending reviews, and exclusive upsell windows."
       />
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         {kpis.map((kpi) => (
           <Panel key={kpi.label} className="p-5">
             <div className="flex items-start justify-between gap-3">

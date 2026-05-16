@@ -16,6 +16,7 @@ import {
   EyeOff,
   Landmark,
   LinkIcon,
+  Mail,
   Phone,
   ShieldCheck,
   Upload,
@@ -99,7 +100,7 @@ const borrowerNext: Record<string, string> = {
 
 const flowSteps = [
   { id: "identity", label: "Identity", icon: ShieldCheck },
-  { id: "phone", label: "Phone", icon: Phone },
+  { id: "phone", label: "Verify", icon: Phone },
   { id: "bvn", label: "Vault", icon: Banknote },
   { id: "register", label: "Account", icon: BadgeCheck },
 
@@ -317,14 +318,108 @@ function PhoneStep({
   onError: (error: unknown) => void;
 }) {
   const router = useRouter();
+  const [method, setMethod] = useState<"phone" | "email">("phone");
   const [number, setNumber] = useState(phone);
   const [provider, setProvider] = useState<TelcoProvider>("mtn");
   const [otp, setOtp] = useState("");
   const [sent, setSent] = useState(false);
+  const [email, setEmail] = useState("");
   const start = api.identification.initiateTelco.useMutation();
   const verify = api.identification.verifyTelco.useMutation();
+  const startEmail = api.identification.initiateEmailOtp.useMutation();
+  const verifyEmail = api.identification.verifyEmailOtp.useMutation();
 
   useEffect(() => setNumber(phone), [phone]);
+
+  if (method === "email") {
+    return (
+      <StepShell
+        icon={<Mail />}
+        title="Verify your email address"
+        subtitle="We'll send a one-time code to your email."
+      >
+        <div className="flex gap-2 rounded-lg border border-stone-200 bg-stone-50 p-1">
+          <button
+            type="button"
+            onClick={() => { setMethod("phone"); setSent(false); setOtp(""); }}
+            className="flex-1 rounded-md px-4 py-2 text-sm font-bold text-stone-500 transition hover:text-stone-800"
+          >
+            <Phone className="mr-1.5 inline h-4 w-4" />
+            Phone
+          </button>
+          <button
+            type="button"
+            className="flex-1 rounded-md bg-white px-4 py-2 text-sm font-bold text-emerald-800 shadow-sm"
+          >
+            <Mail className="mr-1.5 inline h-4 w-4" />
+            Email
+          </button>
+        </div>
+        <form
+          className="space-y-5"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            try {
+              await startEmail.mutateAsync({
+                draftId,
+                email: emailOrDefault(email, demoDefaults.email),
+              });
+              setSent(true);
+            } catch (error) {
+              onError(error);
+            }
+          }}
+        >
+          <Field
+            label="Email address"
+            value={email}
+            onChange={setEmail}
+            type="email"
+            placeholder="e.g. you@example.com"
+          />
+          <PrimaryAction
+            label={sent ? "Resend OTP" : "Send OTP"}
+            loading={startEmail.isPending}
+            submit
+          />
+        </form>
+        {sent ? (
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              try {
+                await verifyEmail.mutateAsync({
+                  draftId,
+                  otp: digitsOrDefault(otp, 6, demoDefaults.otp),
+                });
+                router.push("/onboarding/bvn");
+              } catch (error) {
+                onError(error);
+              }
+            }}
+            className="space-y-4 rounded-lg border border-emerald-100 bg-emerald-50 p-4"
+          >
+            <p className="text-sm text-emerald-800">
+              A 6-digit code was sent to your email.
+            </p>
+            <Field
+              label="OTP"
+              value={otp}
+              onChange={setOtp}
+              inputMode="numeric"
+              maxLength={6}
+              placeholder="000000"
+            />
+            <PrimaryAction
+              label="Verify Email"
+              loading={verifyEmail.isPending}
+              submit
+            />
+          </form>
+        ) : null}
+      </StepShell>
+    );
+  }
 
   return (
     <StepShell
@@ -332,6 +427,23 @@ function PhoneStep({
       title="Confirm your phone number"
       subtitle="We'll send a one-time code to verify your mobile line."
     >
+      <div className="flex gap-2 rounded-lg border border-stone-200 bg-stone-50 p-1">
+        <button
+          type="button"
+          className="flex-1 rounded-md bg-white px-4 py-2 text-sm font-bold text-emerald-800 shadow-sm"
+        >
+          <Phone className="mr-1.5 inline h-4 w-4" />
+          Phone
+        </button>
+        <button
+          type="button"
+          onClick={() => { setMethod("email"); setSent(false); setOtp(""); }}
+          className="flex-1 rounded-md px-4 py-2 text-sm font-bold text-stone-500 transition hover:text-stone-800"
+        >
+          <Mail className="mr-1.5 inline h-4 w-4" />
+          Email
+        </button>
+      </div>
       <form
         className="space-y-5"
         onSubmit={async (e) => {

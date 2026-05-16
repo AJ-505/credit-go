@@ -23,9 +23,12 @@ type FinancingOption = {
   currency: "NGN" | "USD";
   minTier: "Bronze" | "Silver" | "Gold" | "Platinum";
   category: (typeof categories)[number];
+  rate: string;
+  tenor: string;
+  autoApply: boolean;
 };
 
-const financingOptions: FinancingOption[] = [
+const financingOptions: (Omit<FinancingOption, "rate" | "tenor" | "autoApply">)[] = [
   {
     id: 1,
     lender: "Spleet",
@@ -1028,6 +1031,21 @@ const financingOptions: FinancingOption[] = [
   },
 ];
 
+const categoryDefaults: Record<string, { rate: string; tenor: string }> = {
+  "Rent & Accommodation": { rate: "3% - 5%", tenor: "3 - 12 months" },
+  "Solar & Green Energy": { rate: "4% - 8%", tenor: "6 - 24 months" },
+  "Education & School Fees": { rate: "3% - 6%", tenor: "3 - 9 months" },
+  "Health & Medical": { rate: "2.5% - 5%", tenor: "3 - 12 months" },
+  "Business Invoice & Supply Chain": { rate: "4% - 10%", tenor: "1 - 6 months" },
+  "Device & Gadget": { rate: "3% - 7%", tenor: "3 - 12 months" },
+};
+
+const enrichedOptions: FinancingOption[] = financingOptions.map((opt) => {
+  const defaults = categoryDefaults[opt.category] ?? { rate: "3% - 6%", tenor: "3 - 12 months" };
+  const autoApply = ["Device & Gadget", "Education & School Fees"].includes(opt.category) && opt.maxAmount !== null && opt.maxAmount <= 2000000;
+  return { ...opt, ...defaults, autoApply };
+});
+
 const tierRank = {
   Bronze: 1,
   Silver: 2,
@@ -1038,6 +1056,7 @@ const tierRank = {
 export default function MarketplacePage() {
   const userTier = "Gold";
   const safeLimit = 3200000;
+  const [appliedIds, setAppliedIds] = useState<Set<number>>(new Set());
   const [selectedCategories, setSelectedCategories] = useState<
     (typeof categories)[number][]
   >(["All"]);
@@ -1052,13 +1071,28 @@ export default function MarketplacePage() {
   );
   const filteredOptions = useMemo(() => {
     if (selectedCategories.length === 0 || selectedCategories.includes("All")) {
-      return financingOptions;
+      return enrichedOptions;
     }
 
-    return financingOptions.filter((option) =>
+    return enrichedOptions.filter((option) =>
       selectedCategories.includes(option.category),
     );
   }, [selectedCategories]);
+
+  const handleOneClickApply = (option: FinancingOption) => {
+    const existing = JSON.parse(localStorage.getItem("creditgo_loan_applications") ?? "[]") as { id: number; lender: string; product: string; amount: string; rate: string; tenor: string; appliedAt: string }[];
+    existing.push({
+      id: option.id,
+      lender: option.lender,
+      product: option.product,
+      amount: option.range,
+      rate: option.rate,
+      tenor: option.tenor,
+      appliedAt: new Date().toISOString(),
+    });
+    localStorage.setItem("creditgo_loan_applications", JSON.stringify(existing));
+    setAppliedIds((prev) => new Set(prev).add(option.id));
+  };
   const hiddenSelectedCount = Math.max(selectedCategories.length - 3, 0);
 
   const toggleCategory = (category: (typeof categories)[number]) => {
@@ -1183,7 +1217,7 @@ export default function MarketplacePage() {
       </div>
 
       <p className="text-sm font-medium text-stone-500">
-        Showing {filteredOptions.length} of {financingOptions.length} options.
+        Showing {filteredOptions.length} of {enrichedOptions.length} options.
       </p>
 
       <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
@@ -1218,7 +1252,13 @@ export default function MarketplacePage() {
                 {option.range}
               </div>
 
-              <div className="mt-4 flex flex-wrap gap-2">
+              <div className="mt-3 flex items-center gap-3 text-sm font-bold text-stone-600">
+                <span>{option.rate}</span>
+                <span className="text-stone-300">|</span>
+                <span>{option.tenor}</span>
+              </div>
+
+              <div className="mt-3 flex flex-wrap gap-2">
                 {qualifies ? (
                   <span className="inline-flex items-center rounded-full border border-transparent bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-800">
                     You qualify
@@ -1233,15 +1273,35 @@ export default function MarketplacePage() {
                     Above limit
                   </span>
                 )}
+                {option.autoApply && (
+                  <span className="inline-flex items-center rounded-full border border-transparent bg-blue-100 px-2.5 py-0.5 text-xs font-bold text-blue-800">
+                    Auto-apply
+                  </span>
+                )}
               </div>
 
               <div className="mt-auto pt-6">
-                <Link
-                  href={`/dashboard/marketplace/${option.id}`}
-                  className="inline-flex h-11 w-full items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-200 focus-visible:outline-none"
-                >
-                  View Details
-                </Link>
+                {option.autoApply ? (
+                  appliedIds.has(option.id) ? (
+                    <span className="inline-flex h-11 w-full items-center justify-center rounded-lg bg-stone-100 text-sm font-bold text-stone-500">
+                      Applied
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => handleOneClickApply(option)}
+                      className="inline-flex h-11 w-full items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-200 focus-visible:outline-none"
+                    >
+                      Apply Now
+                    </button>
+                  )
+                ) : (
+                  <Link
+                    href={`/dashboard/marketplace/${option.id}`}
+                    className="inline-flex h-11 w-full items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-200 focus-visible:outline-none"
+                  >
+                    View Details
+                  </Link>
+                )}
               </div>
             </div>
           );
